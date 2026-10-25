@@ -22,13 +22,14 @@ test('the Cloud section lists connected providers only, then setup', () => {
 });
 
 test('only Claude Code relays, Codex and OpenCode run in the cloud', () => {
-  for (const id of ['claude', 'glm', 'mimo', 'codex', 'opencode']) assert.equal(harnessRefusal(id, id), '');
-  assert.match(harnessRefusal('kimi', 'Kimi'), /^Kimi can’t run on a cloud machine yet\. Choose Claude Code, GLM, MiMo, Codex or OpenCode\.$/);
+  for (const id of ['claude', 'glm', 'bigmodel', 'mimo', 'codex', 'opencode']) assert.equal(harnessRefusal(id, id), '');
+  assert.match(harnessRefusal('kimi', 'Kimi'), /^Kimi can’t run on a cloud machine yet\. Choose Claude Code, GLM, BigModel, MiMo, Codex or OpenCode\.$/);
 });
 
 test('stages read as short phrases; busy ones spin', () => {
   assert.equal(stageText('installing', null, 'codex'), 'Installing Codex');
   assert.equal(stageText('installing', null, 'glm'), 'Installing Claude Code');
+  assert.equal(stageText('installing', null, 'bigmodel'), 'Installing Claude Code');
   assert.equal(stageText('error', 'E2B refused the key', 'claude'), 'Error: E2B refused the key');
   assert.equal(stageText('reconnecting', null, 'claude'), 'Reconnecting…');
   assert.equal(busyStage('uploading'), true);

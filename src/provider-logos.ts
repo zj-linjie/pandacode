@@ -12,6 +12,8 @@ const logos: Partial<Record<ProviderId, string>> = {
   kimi: new URL('./assets/providers/kimi.png', import.meta.url).href,
   opencode: new URL('./assets/providers/opencode.png', import.meta.url).href,
   glm: new URL('./assets/providers/glm.svg', import.meta.url).href,
+  // BigModel is Zhipu's own plan; same GLM brand mark as the Z.AI relay.
+  bigmodel: new URL('./assets/providers/glm.svg', import.meta.url).href,
   antigravity: new URL('./assets/providers/antigravity.png', import.meta.url).href,
   grok: new URL('./assets/providers/grok.png', import.meta.url).href,
   mimo: new URL('./assets/providers/mimo.png', import.meta.url).href,

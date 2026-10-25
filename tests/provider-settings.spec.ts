@@ -197,7 +197,33 @@ test('provider connections expose all harnesses and real GLM model names', async
   await expect(page.getByText('GLM-5.3', { exact: true }).first()).toBeVisible();
 });
 
-for (const providerId of ['claude', 'codex', 'kimi', 'opencode', 'glm', 'antigravity', 'grok', 'mimo', 'pi', 'deepseek', 'commandcode', 'cline', 'kilo', 'omp', 'github-copilot', 'muse', 'devin']) {
+test('the BigModel Coding Plan card keeps its key native-only and lists documented models', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.locator('.task-item.selected .task-title')).toHaveText('Make search feel instant');
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('region', { name: 'Settings', exact: true }).getByRole('tab', { name: 'Providers', exact: true }).click();
+  const card = page.locator('.connection-card', { hasText: 'BigModel Coding Plan' });
+  await expect(card).toContainText('Zhipu · via Claude Code');
+  await expect(card.getByRole('link', { name: /Coding Plan setup/ })).toHaveAttribute('href', 'https://docs.bigmodel.cn/cn/coding-plan/quick-start');
+  // The key lives in the platform store only; the preview never accepts one.
+  await expect(card.getByLabel('BigModel API key', { exact: true })).toBeDisabled();
+  await expect(card.getByRole('button', { name: 'Save key', exact: true })).toBeDisabled();
+  await expect(card.locator('#bigmodel-key-status')).toContainText('BIGMODEL_API_KEY');
+  // Documented Coding Plan IDs only: the unsuffixed pair plus the [1m] variants.
+  await page.getByRole('button', { name: 'Back to the workspace', exact: true }).click();
+  await page.getByRole('button', { name: 'Choose harness and model', exact: true }).click();
+  const picker = page.getByRole('dialog', { name: 'Harness and model', exact: true });
+  await page.getByText('BigModel Coding Plan', { exact: true }).first().click();
+  for (const model of ['glm-5.3', 'glm-5.3-flash', 'glm-5.3[1m]', 'glm-5.3-flash[1m]']) {
+    await expect(picker.locator(`.model-menu-option[data-provider="bigmodel"][data-model="${model}"]`)).toBeVisible();
+  }
+  // Default plus the four documented IDs; glm-5-turbo is not on BigModel's doc pages.
+  await expect(picker.locator('.model-menu-option[data-provider="bigmodel"]')).toHaveCount(5);
+  expect(errors).toEqual([]);
+});
+
+for (const providerId of ['claude', 'codex', 'kimi', 'opencode', 'glm', 'bigmodel', 'antigravity', 'grok', 'mimo', 'pi', 'deepseek', 'commandcode', 'cline', 'kilo', 'omp', 'github-copilot', 'muse', 'devin']) {
   test(`provider connections start ${providerId} tasks with Full access and retain explicit restrictions when switching`, async ({ page }) => {
     await page.addInitScript(provider => localStorage.setItem('pandacode.provider', provider), providerId);
     await page.route('**/src/preview.ts*', async route => {

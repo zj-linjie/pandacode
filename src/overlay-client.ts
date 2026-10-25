@@ -19,6 +19,7 @@ const previewCatalogs: Record<ProviderId, ProviderModel[]> = {
   kimi:[{id:'kimi-code/k3',name:'K3',description:'Sample configured Kimi model.'}],
   opencode:[{id:'opencode/big-pickle',name:'Big Pickle',description:'Sample OpenCode model metadata.'}],
   glm:[{id:'glm-5.3',name:'GLM-5.3',description:'Sample Z.ai model metadata.'}],
+  bigmodel:[{id:'glm-5.3',name:'GLM-5.3',description:'Sample BigModel model metadata.'}],
   antigravity:[],
   grok:[{id:'grok-4.7',name:'Grok 4.7',description:'Sample Grok Build model.'}],
   mimo:[{id:'mimo-v2.6-pro',name:'MiMo-V2.6-Pro',description:'Sample MiMo Token Plan model.'}],
@@ -30,7 +31,7 @@ const previewCatalogs: Record<ProviderId, ProviderModel[]> = {
   muse:[{id:'muse-spark-1.3',name:'muse-spark-1.3',description:'Sample Muse Code model.'}],
   devin:[{id:'swe-2-high',name:'SWE-2',description:'Sample Devin model.'}],
 };
-const previewProviders: Provider[] = (Object.entries({codex:'Codex',claude:'Claude Code',kimi:'Kimi Code',opencode:'OpenCode',glm:'GLM Coding Plan',antigravity:'Antigravity',grok:'Grok Build',mimo:'MiMo Token Plan',pi:'Pi',deepseek:'DeepSeek',commandcode:'Command Code',cline:'Cline',kilo:'Kilo Code',omp:'Oh My Pi','github-copilot':'GitHub Copilot CLI',muse:'Muse Code',devin:'Devin CLI'}) as [ProviderId,string][]).map(([id,name]) => ({id,name,installed:id !== 'antigravity',path:id === 'antigravity' ? null : `/sample/bin/${id === 'github-copilot' ? 'copilot' : id === 'commandcode' ? 'command-code' : id}`,version:'Sample provider',models:[]}));
+const previewProviders: Provider[] = (Object.entries({codex:'Codex',claude:'Claude Code',kimi:'Kimi Code',opencode:'OpenCode',glm:'GLM Coding Plan',bigmodel:'BigModel Coding Plan',antigravity:'Antigravity',grok:'Grok Build',mimo:'MiMo Token Plan',pi:'Pi',deepseek:'DeepSeek',commandcode:'Command Code',cline:'Cline',kilo:'Kilo Code',omp:'Oh My Pi','github-copilot':'GitHub Copilot CLI',muse:'Muse Code',devin:'Devin CLI'}) as [ProviderId,string][]).map(([id,name]) => ({id,name,installed:id !== 'antigravity',path:id === 'antigravity' ? null : `/sample/bin/${id === 'github-copilot' ? 'copilot' : id === 'commandcode' ? 'command-code' : id}`,version:'Sample provider',models:[]}));
 const tasks: OverlayTask[] = [
   {id:'preview-active', sessionId:'preview-active', kind:'task', title:'Polish the new onboarding', projectId:'preview-project', projectName:'PandaCode', provider:'codex', status:'running', updatedAt:Date.now()},
   {id:'preview-approval', sessionId:'preview-approval', kind:'task', title:'Build a responsive gallery', projectId:'preview-project', projectName:'PandaCode', provider:'claude', status:'waiting', updatedAt:Date.now()},

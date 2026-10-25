@@ -8,7 +8,7 @@ async function open(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const update = (provider: string, name: string, providers = [provider]) => ({ provider, name, providers, installedVersion: '1.0.0', latestVersion: '1.1.0', status: 'available', method: 'Native updater', canUpdate: true, message: null, checkedAt: Date.now(), docsUrl: null });
     (window as any).__agentUpdates = { calls: [], hold: false, failure: '', checkFailure: false, results: [
-      update('claude', 'Claude Code', ['claude', 'glm', 'mimo']), update('codex', 'Codex'),
+      update('claude', 'Claude Code', ['claude', 'glm', 'bigmodel', 'mimo']), update('codex', 'Codex'),
       { ...update('kimi', 'Kimi Code'), status: 'current', latestVersion: '1.0.0' },
       { ...update('opencode', 'OpenCode'), status: 'unsupported', canUpdate: false, latestVersion: null, method: null, message: 'Update this custom installation using its package manager.', docsUrl: 'https://opencode.ai/docs/cli/' },
       { ...update('kilo', 'Kilo Code'), status: 'unsupported', canUpdate: false, latestVersion: null, method: null, message: 'PandaCode cannot update this agent. Use its own updater or package manager.' },

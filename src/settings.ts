@@ -69,7 +69,7 @@ export const SECTIONS: { id: SettingsSection; label: string; icon: string; descr
 ];
 
 /** Key-based plans that run through Claude Code; they are set up under Providers, not listed as agents. */
-const PLANS = new Set<ProviderId>(['glm', 'mimo']);
+const PLANS = new Set<ProviderId>(['glm', 'bigmodel', 'mimo']);
 
 const switchRow = (id: string, title: string, detail: string, checked: boolean) =>
   `<div class="setting-row"><div><strong>${title}</strong><small>${detail}</small></div><input type="checkbox" class="settings-switch" id="${id}" aria-label="${title}" ${checked ? 'checked' : ''}></div>`;

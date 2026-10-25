@@ -4,6 +4,7 @@ import type { ContextUsage, ProviderId, ProviderModel } from './types';
 export function fallbackModel(provider: ProviderId, id = 'default'): ProviderModel {
   id ||= 'default';
   if (id === 'default' && provider === 'glm') return { id, name: 'GLM-5.3', description: 'Default Z.AI Coding Plan model via Claude Code.' };
+  if (id === 'default' && provider === 'bigmodel') return { id, name: 'GLM-5.3', description: 'Default BigModel Coding Plan model via Claude Code.' };
   if (id === 'default' && provider === 'mimo') return { id, name: 'MiMo-V2.6-Pro', description: 'Default MiMo Token Plan model via Claude Code.' };
   if (id === 'default') return { id, name: 'Default', description: 'Uses the model selected by your harness.' };
   const alias = provider === 'claude' ? ({ sonnet: 'Claude Sonnet', opus: 'Claude Opus', haiku: 'Claude Haiku' } as Record<string, string>)[id] : '';

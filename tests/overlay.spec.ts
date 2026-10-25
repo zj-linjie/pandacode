@@ -362,6 +362,10 @@ test('launcher model picker fits the minimum window and Escape only closes the p
   const glm = page.locator('.model-menu-option[data-provider="glm"][data-model="glm-5.3"]');
   await expect(glm).toBeInViewport();
   await expect(glm.locator('.provider-logo')).toHaveCount(1);
+  await page.getByRole('searchbox',{name:'Search harnesses and models'}).fill('BigModel Coding Plan');
+  const bigmodel = page.locator('.model-menu-option[data-provider="bigmodel"][data-model="glm-5.3"]');
+  await expect(bigmodel).toBeInViewport();
+  await expect(bigmodel.locator('.provider-logo')).toHaveCount(1);
   await expect(picker).toHaveAttribute('data-popover-state','open');
   await expect(picker).toHaveCSS('opacity','1');
   await page.screenshot({path:'/private/tmp/pandacode-overlay-check/model-picker.png'});
