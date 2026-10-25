@@ -1,5 +1,6 @@
 import type { ToolActivity } from './types';
 import { escape, icon } from './dom.ts';
+import { t } from './i18n.ts';
 import { describeTool, kindIcon, summarizeTools, summaryIcons, toolPreview, traceRowHtml } from './tool-trace.ts';
 
 const MAX_CONTENT = 100_000;
@@ -27,26 +28,26 @@ export function decodeToolActivity(content: string): ToolActivity | undefined {
 }
 
 function bounded(value: string, limit = MAX_DETAIL): string {
-  return value.length > limit ? value.slice(0, limit) + '\n[Display truncated]' : value;
+  return value.length > limit ? value.slice(0, limit) + t('\n[Display truncated]') : value;
 }
 
 function section(kind: 'input' | 'output', content: string): string {
-  const label = kind === 'input' ? 'Input' : 'Output';
-  return `<section class="tool-activity-section" data-tool-section="${kind}"><h4>${label}</h4><pre tabindex="0" aria-label="Tool ${kind}">${escape(bounded(content))}</pre></section>`;
+  const label = kind === 'input' ? t('Input') : t('Output');
+  return `<section class="tool-activity-section" data-tool-section="${kind}"><h4>${label}</h4><pre tabindex="0" aria-label="${t`Tool ${kind}`}">${escape(bounded(content))}</pre></section>`;
 }
 
 function toolNote(tool: ToolActivity): string {
   if (tool.output.trim()) return '';
   const note = tool.status === 'running'
-    ? tool.input.trim() ? 'Waiting for output…' : 'Waiting for tool details…'
-    : tool.status === 'completed' ? 'No output was returned.' : 'No output was recorded.';
+    ? tool.input.trim() ? t('Waiting for output…') : t('Waiting for tool details…')
+    : tool.status === 'completed' ? t('No output was returned.') : t('No output was recorded.');
   return `<p class="tool-activity-note">${note}</p>`;
 }
 
 /** The recorded input/output stay one quiet disclosure below the readable card. */
 function rawRecord(tool: ToolActivity): string {
   const sections = (tool.input.trim() ? section('input', tool.input) : '') + (tool.output.trim() ? section('output', tool.output) : '');
-  return sections ? `<details class="tool-trace-raw"><summary>${icon('chevron')}Raw input/output</summary><div class="tool-trace-raw-body">${sections}</div></details>` : '';
+  return sections ? `<details class="tool-trace-raw"><summary>${icon('chevron')}${t('Raw input/output')}</summary><div class="tool-trace-raw-body">${sections}</div></details>` : '';
 }
 
 /** Caller owns the stable key and restores native details.open when replacing activity rows. */
@@ -55,20 +56,20 @@ export function renderToolActivity(content: string | ToolActivity, key: string):
   if (!tool) return renderLegacyTool(content as string, key);
   const named = { ...tool, name: tool.name.slice(0, MAX_LABEL) };
   const trace = describeTool(named);
-  const status = tool.status === 'failed' ? '<span class="tool-activity-status">Failed</span>' : '';
+  const status = tool.status === 'failed' ? `<span class="tool-activity-status">${t('Failed')}</span>` : '';
   const lead = icon(tool.status === 'failed' ? 'alert' : kindIcon(trace.kind), 'tool-trace-icon');
   const body = toolPreview(named) + toolNote(tool) + rawRecord(tool);
-  return `<details class="tool-activity tool-trace" data-tool-key="${escape(key)}" data-tool-status="${escape(tool.status)}" data-tool-kind="${trace.kind}" data-tool-name="${escape(named.name)}"><summary title="${escape(named.name || 'Tool')}">${lead}${traceRowHtml(trace)}${status}${icon('chevron', 'tool-trace-chevron')}</summary><div class="tool-activity-body">${body}</div></details>`;
+  return `<details class="tool-activity tool-trace" data-tool-key="${escape(key)}" data-tool-status="${escape(tool.status)}" data-tool-kind="${trace.kind}" data-tool-name="${escape(named.name)}"><summary title="${escape(named.name || t('Tool'))}">${lead}${traceRowHtml(trace)}${status}${icon('chevron', 'tool-trace-chevron')}</summary><div class="tool-activity-body">${body}</div></details>`;
 }
 
 function renderLegacyTool(content: string, key: string): string {
   const text = bounded(content).trim();
   const newline = text.indexOf('\n');
-  const name = bounded(newline < 0 ? text : text.slice(0, newline), MAX_LABEL) || 'Tool activity';
+  const name = bounded(newline < 0 ? text : text.slice(0, newline), MAX_LABEL) || t('Tool activity');
   const remainder = newline < 0 ? '' : text.slice(newline + 1).trim();
   const body = remainder
-    ? `<pre class="tool-activity-legacy-body" tabindex="0" aria-label="Recorded tool details">${escape(remainder)}</pre>`
-    : '<p class="tool-activity-note">Details were not recorded for this earlier tool call.</p>';
+    ? `<pre class="tool-activity-legacy-body" tabindex="0" aria-label="${t('Recorded tool details')}">${escape(remainder)}</pre>`
+    : `<p class="tool-activity-note">${t('Details were not recorded for this earlier tool call.')}</p>`;
   return `<details class="tool-activity" data-tool-key="${escape(key)}"><summary>${icon('terminal')}<span class="tool-activity-name">${escape(name)}</span>${icon('chevron')}</summary><div class="tool-activity-body">${body}</div></details>`;
 }
 

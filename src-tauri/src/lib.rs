@@ -64,6 +64,7 @@ mod usage_ledger;
 mod workspace;
 mod jj;
 mod tray;
+mod ui_language;
 
 pub use usage_keychain::handle_usage_keychain_helper;
 pub use cloud_agents::handle_cloud_bridge;
@@ -3379,6 +3380,7 @@ pub fn run() {
             std::fs::create_dir_all(&dir)?;
             secret_store::setup(&dir);
             provider_settings::setup(&dir).map_err(std::io::Error::other)?;
+            ui_language::load(&dir);
             connections::setup(&dir).map_err(std::io::Error::other)?;
             // Optional integration storage must never prevent the workspace from opening.
             if jev::setup(&dir).is_err() {
@@ -3449,6 +3451,7 @@ pub fn run() {
                     overlay::overlay_select_model,
                     overlay::overlay_hide,
                     overlay::overlay_open_task,
+                    ui_language::set_ui_language,
                     task_controls::fork_session_at_message,
                     task_controls::get_message_content,
                     list_providers,
@@ -3467,6 +3470,7 @@ pub fn run() {
                     tray::tray_hide,
                     tray::tray_quit,
                     tray::tray_resize,
+                    ui_language::set_ui_language,
                 ];
                 return handler(invoke);
             }
@@ -3479,6 +3483,7 @@ pub fn run() {
             let handler: fn(tauri::ipc::Invoke<tauri::Wry>) -> bool = tauri::generate_handler![
                 support::open_support,
                 support::support_details,
+                ui_language::set_ui_language,
                 local_sign_app,
                 app_updates::app_update_install_supported,
                 agent_updates::check_agent_updates,

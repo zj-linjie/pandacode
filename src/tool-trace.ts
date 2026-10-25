@@ -1,5 +1,6 @@
 import type { ToolActivity } from './types';
 import { escape, icon } from './dom.ts';
+import { t } from './i18n.ts';
 
 /** Sentence-style tool traces: `Verb [chip] object` rows, result cards and group summaries. Pure and escaped. */
 export type TraceKind = 'shell' | 'read' | 'edit' | 'write' | 'search' | 'web' | 'fetch' | 'todo' | 'agent' | 'skill' | 'mcp' | 'tool';
@@ -17,21 +18,21 @@ const OMITTED = '[Non-text content omitted]';
 
 // [running verb, finished verb, row icon, summary noun singular, plural]
 const KINDS: Record<TraceKind, [string, string, string, string, string]> = {
-  shell: ['Running', 'Ran', 'terminal', 'command', 'commands'],
-  read: ['Reading', 'Read', 'file', 'file', 'files'],
-  edit: ['Editing', 'Edited', 'edit', 'file', 'files'],
-  write: ['Writing', 'Wrote', 'plus', 'file', 'files'],
-  search: ['Searching', 'Searched', 'search', 'search', 'searches'],
-  web: ['Searching', 'Searched', 'globe', 'search', 'searches'],
-  fetch: ['Fetching', 'Fetched', 'external', 'page', 'pages'],
-  todo: ['Updating', 'Updated', 'check', 'plan', 'plans'],
-  agent: ['Starting', 'Started', 'bot', 'agent', 'agents'],
-  skill: ['Loading', 'Loaded', 'spark', 'skill', 'skills'],
-  mcp: ['Using', 'Used', 'server', 'tool', 'tools'],
-  tool: ['Using', 'Used', 'command', 'tool', 'tools'],
+  shell: [t('Running'), t('Ran'), 'terminal', t('command'), t('commands')],
+  read: [t('Reading'), t('Read'), 'file', t('file'), t('files')],
+  edit: [t('Editing'), t('Edited'), 'edit', t('file'), t('files')],
+  write: [t('Writing'), t('Wrote'), 'plus', t('file'), t('files')],
+  search: [t('Searching'), t('Searched'), 'search', t('search'), t('searches')],
+  web: [t('Searching'), t('Searched'), 'globe', t('search'), t('searches')],
+  fetch: [t('Fetching'), t('Fetched'), 'external', t('page'), t('pages')],
+  todo: [t('Updating'), t('Updated'), 'check', t('plan'), t('plans')],
+  agent: [t('Starting'), t('Started'), 'bot', t('agent'), t('agents')],
+  skill: [t('Loading'), t('Loaded'), 'spark', t('skill'), t('skills')],
+  mcp: [t('Using'), t('Used'), 'server', t('tool'), t('tools')],
+  tool: [t('Using'), t('Used'), 'command', t('tool'), t('tools')],
 };
 // Summary phrasing: searches read as "Ran 2 searches" like the reference, the rest keep their row verb.
-const SUMMARY_VERB: Partial<Record<TraceKind, [string, string]>> = { search: ['Running', 'Ran'], web: ['Running', 'Ran'] };
+const SUMMARY_VERB: Partial<Record<TraceKind, [string, string]>> = { search: [t('Running'), t('Ran')], web: [t('Running'), t('Ran')] };
 
 export function kindIcon(kind: TraceKind): string { return KINDS[kind][2]; }
 
@@ -111,8 +112,8 @@ function mcpParts(name: string): { server: string; tool: string } {
 /** `Dispatched 2 workers`-style verbs for PandaCode's own tools; undefined keeps the generic `Used [server] tool`. */
 function pandacodeTrace(tool: string, fields: Fields, running: boolean): Partial<Trace> | undefined {
   const workers = Array.isArray(fields.workers) ? fields.workers.length : Array.isArray(fields.tasks) ? fields.tasks.length : 0;
-  if (tool === 'dispatch_workers') return { verb: running ? 'Dispatching' : 'Dispatched', object: workers ? `${workers} ${workers === 1 ? 'worker' : 'workers'}` : 'workers' };
-  if (tool === 'title') return { verb: running ? 'Naming' : 'Named', object: field(fields, 'title') ? `the task “${clip(field(fields, 'title'), 60)}”` : 'the task' };
+  if (tool === 'dispatch_workers') return { verb: running ? t('Dispatching') : t('Dispatched'), object: workers ? t`${workers} ${workers === 1 ? t('worker') : t('workers')}` : t('workers') };
+  if (tool === 'title') return { verb: running ? t('Naming') : t('Named'), object: field(fields, 'title') ? t`the task “${clip(field(fields, 'title'), 60)}”` : t('the task') };
   return;
 }
 
@@ -126,7 +127,7 @@ function describeFields(kind: TraceKind, name: string, input: string, fields: Fi
     case 'read': case 'write': {
       const path = filePath(input, fields);
       const content = field(fields, 'content', 'contents');
-      return { chip: fileChip(path), object: kind === 'write' && content ? `${lines(content).length} lines` : '' };
+      return { chip: fileChip(path), object: kind === 'write' && content ? t`${lines(content).length} lines` : '' };
     }
     case 'edit': {
       const path = field(fields, 'file_path', 'path', 'filePath', 'target_file');
@@ -136,24 +137,24 @@ function describeFields(kind: TraceKind, name: string, input: string, fields: Fi
       const where = field(fields, 'path', 'directory', 'target_directory');
       const pattern = field(fields, 'pattern', 'query', 'glob', 'regex');
       const glob = /glob|ls|list/.test(name.toLowerCase());
-      return { chip: { icon: glob ? 'folder' : 'search', label: where ? basename(where) : 'workspace', title: where || 'workspace' }, object: pattern ? `${glob ? 'for files matching' : 'for'} ${clip(pattern, 80)}` : '' };
+      return { chip: { icon: glob ? 'folder' : 'search', label: where ? basename(where) : t('workspace'), title: where || t('workspace') }, object: pattern ? (glob ? t`for files matching ${clip(pattern, 80)}` : t`for ${clip(pattern, 80)}`) : '' };
     }
-    case 'web': return { chip: { icon: 'globe', label: 'Web', title: 'Web search' }, object: field(fields, 'query', 'q') ? `for ${clip(field(fields, 'query', 'q'))}` : '' };
+    case 'web': return { chip: { icon: 'globe', label: t('Web'), title: t('Web search') }, object: field(fields, 'query', 'q') ? t`for ${clip(field(fields, 'query', 'q'))}` : '' };
     case 'fetch': {
       const url = field(fields, 'url');
       return { chip: url ? { icon: 'globe', label: domain(url), title: url } : undefined, object: clip(field(fields, 'prompt'), 90) };
     }
     case 'todo': {
       const todos = Array.isArray(fields.todos) ? fields.todos.length : Array.isArray(fields.plan) ? fields.plan.length : 0;
-      return { object: todos ? `the plan · ${todos} ${todos === 1 ? 'step' : 'steps'}` : 'the plan' };
+      return { object: todos ? t`the plan · ${todos} ${todos === 1 ? t('step') : t('steps')}` : t('the plan') };
     }
     case 'agent': {
       const type = field(fields, 'subagent_type', 'agent');
-      return { chip: { icon: 'bot', label: type || 'agent', title: type || 'agent' }, object: clip(field(fields, 'description', 'prompt'), 90) };
+      return { chip: { icon: 'bot', label: type || t('agent'), title: type || t('agent') }, object: clip(field(fields, 'description', 'prompt'), 90) };
     }
     case 'skill': {
       const skill = field(fields, 'skill', 'name', 'command');
-      return { verb: running ? 'Loading skill' : 'Loaded skill', chip: skill ? { icon: 'spark', label: skill, title: skill } : undefined, object: '' };
+      return { verb: running ? t('Loading skill') : t('Loaded skill'), chip: skill ? { icon: 'spark', label: skill, title: skill } : undefined, object: '' };
     }
     case 'mcp': {
       const { server, tool } = mcpParts(name);
@@ -161,7 +162,7 @@ function describeFields(kind: TraceKind, name: string, input: string, fields: Fi
       if (own) return { chip: { icon: 'server', label: 'PandaCode', title: name }, object: '', ...own };
       return { chip: { icon: 'server', label: server, title: name }, object: tool.replace(/_/g, ' ') };
     }
-    default: return { chip: { icon: 'command', label: name || 'Tool', title: name || 'Tool' }, object: inputHint(input) };
+    default: return { chip: { icon: 'command', label: name || t('Tool'), title: name || t('Tool') }, object: inputHint(input) };
   }
 }
 
@@ -190,7 +191,7 @@ export function traceRowHtml(trace: Trace): string {
 }
 
 function joinPhrases(parts: string[]): string {
-  return parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+  return parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')}${t(' and ')}${parts[parts.length - 1]}`;
 }
 
 /** `Ran 3 commands, read 2 files and edited 1 file` (present tense while any call runs; failures appended). */
@@ -206,9 +207,9 @@ export function summarizeTools(tools: (Tool | undefined)[]): string {
     counts.set(verb, nouns.set(key, (nouns.get(key) ?? 0) + 1));
   }
   const phrases = [...counts].map(([verb, nouns]) => `${verb.toLowerCase()} ${joinPhrases([...nouns].map(([kind, count]) =>
-    kind === 'todo' ? 'the plan' : `${count} ${KINDS[kind][count === 1 ? 3 : 4]}`))}`);
+    kind === 'todo' ? t('the plan') : `${count} ${KINDS[kind][count === 1 ? 3 : 4]}`))}`);
   const sentence = joinPhrases(phrases);
-  return (sentence.charAt(0).toUpperCase() + sentence.slice(1)) + (running ? '…' : '') + (failed ? ` · ${failed} failed` : '');
+  return (sentence.charAt(0).toUpperCase() + sentence.slice(1)) + (running ? '…' : '') + (failed ? t` · ${failed} failed` : '');
 }
 
 export function summaryIcons(tools: (Tool | undefined)[], limit = 4): string[] {
@@ -228,7 +229,7 @@ function list(items: { title: string; meta?: string; hint?: string }[], total = 
   if (!items.length) return '';
   const rows = items.slice(0, LIST_ITEMS).map(item => `<li><span class="tool-trace-item-title"${item.hint ? ` title="${escape(item.hint)}"` : ''}>${escape(clip(item.title, 120))}</span>${item.meta ? `<span class="tool-trace-item-meta">${escape(clip(item.meta, 80))}</span>` : ''}</li>`).join('');
   const more = total - Math.min(items.length, LIST_ITEMS);
-  return `<ul class="tool-trace-list">${rows}${more > 0 ? `<li class="tool-trace-more">+${more} more</li>` : ''}</ul>`;
+  return `<ul class="tool-trace-list">${rows}${more > 0 ? `<li class="tool-trace-more">${t`+${more} more`}</li>` : ''}</ul>`;
 }
 
 function exitCode(output: string): { code?: number; body: string } {
@@ -244,13 +245,13 @@ function shellCard(tool: Tool, fields: Fields): string {
   const { code, body } = exitCode(cleanOutput(tool.output));
   const failed = code !== undefined ? code !== 0 : tool.status === 'failed';
   const badge = code !== undefined || tool.status === 'failed'
-    ? `<span class="tool-trace-badge${failed ? ' is-failed' : ''}">${escape(code !== undefined ? `exit ${code}` : 'failed')}</span>` : '';
+    ? `<span class="tool-trace-badge${failed ? ' is-failed' : ''}">${escape(code !== undefined ? t`exit ${code}` : t('failed'))}</span>` : '';
   const tail = lines(body.trimEnd()).slice(-PREVIEW_LINES);
-  return command ? `${head(`<code class="tool-trace-command">${escape(clip(command, 400))}</code>${badge}`)}${linesPre(tail, 'Command output, last lines')}` : '';
+  return command ? `${head(`<code class="tool-trace-command">${escape(clip(command, 400))}</code>${badge}`)}${linesPre(tail, t('Command output, last lines'))}` : '';
 }
 
 function fileCard(path: string, meta: string, preview: string[]): string {
-  return path ? `${head(`<span class="tool-trace-chip" title="${escape(path)}">${icon('file')}<b>${escape(basename(path))}</b></span>`, meta)}${linesPre(preview, 'File preview')}` : '';
+  return path ? `${head(`<span class="tool-trace-chip" title="${escape(path)}">${icon('file')}<b>${escape(basename(path))}</b></span>`, meta)}${linesPre(preview, t('File preview'))}` : '';
 }
 
 function diffCard(tool: Tool, fields: Fields): string {
@@ -261,9 +262,9 @@ function diffCard(tool: Tool, fields: Fields): string {
   }
   const { added, removed } = diffCounts(fields);
   const shown = rows.slice(0, DIFF_LINES).join('\n');
-  const more = rows.length > DIFF_LINES ? `<p class="tool-trace-more">+${rows.length - DIFF_LINES} more lines</p>` : '';
+  const more = rows.length > DIFF_LINES ? `<p class="tool-trace-more">${t`+${rows.length - DIFF_LINES} more lines`}</p>` : '';
   const path = field(fields, 'file_path', 'path', 'filePath', 'target_file');
-  return (path ? fileCard(path, `+${added} −${removed}`, []) : '') + (shown ? `<pre class="tool-trace-diff" tabindex="0" aria-label="Edit preview">${shown}</pre>${more}` : '');
+  return (path ? fileCard(path, `+${added} −${removed}`, []) : '') + (shown ? `<pre class="tool-trace-diff" tabindex="0" aria-label="${t('Edit preview')}">${shown}</pre>${more}` : '');
 }
 
 function searchCard(output: string): string {
@@ -310,7 +311,7 @@ function todoCard(fields: Fields): string {
 }
 
 function excerptCard(output: string): string {
-  return linesPre(lines(output.trim()).slice(0, PREVIEW_LINES), 'Result preview');
+  return linesPre(lines(output.trim()).slice(0, PREVIEW_LINES), t('Result preview'));
 }
 
 function previewBody(kind: TraceKind, tool: Tool, fields: Fields, output: string): string {
@@ -319,11 +320,11 @@ function previewBody(kind: TraceKind, tool: Tool, fields: Fields, output: string
     case 'read': {
       const path = filePath(tool.input, fields);
       const all = lines(output);
-      return fileCard(path, all.length ? `${all.length} ${all.length === 1 ? 'line' : 'lines'}` : '', all.slice(0, PREVIEW_LINES));
+      return fileCard(path, all.length ? `${all.length} ${all.length === 1 ? t('line') : t('lines')}` : '', all.slice(0, PREVIEW_LINES));
     }
     case 'write': {
       const content = lines(field(fields, 'content', 'contents'));
-      return fileCard(field(fields, 'file_path', 'path', 'filePath'), `New file · ${content.length} lines`, content.slice(0, PREVIEW_LINES));
+      return fileCard(field(fields, 'file_path', 'path', 'filePath'), t`New file · ${content.length} lines`, content.slice(0, PREVIEW_LINES));
     }
     case 'edit': return diffCard(tool, fields);
     case 'search': return searchCard(output);

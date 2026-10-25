@@ -1,5 +1,6 @@
 import './bots.css';
 import './bots-settings.css';
+import { t } from './i18n.ts';
 import { escape, icon } from './dom';
 import { providerLogo } from './provider-logos';
 import { infoMark } from './tooltip';
@@ -58,44 +59,44 @@ export type Section = Tab | 'profile';
 /** The settings nav, like the app's own Settings. Activity also holds conversations and rules. */
 type Nav = 'profile' | 'skills' | 'channels' | 'schedules' | 'memory' | 'activity';
 const SECTIONS: { id: Nav; label: string; icon: string; text: string }[] = [
-  { id: 'profile', label: 'Profile', icon: 'bot', text: 'Who the bot is, how it works and what runs it.' },
-  { id: 'channels', label: 'Channels', icon: 'globe', text: 'Talk to it from a browser, Telegram, Slack, Discord or WhatsApp.' },
-  { id: 'schedules', label: 'Schedules', icon: 'refresh', text: 'Recurring or one-off work the bot starts on its own.' },
-  { id: 'memory', label: 'Memory', icon: 'leaf', text: 'Kept across conversations. The bot adds its own as it learns.' },
-  { id: 'skills', label: 'Skills', icon: 'widget', text: 'Library skills and MCP servers this bot uses, by reference. Nothing is copied.' },
-  { id: 'activity', label: 'Activity', icon: 'activity', text: 'Conversations, approval rules and everything the bot did.' },
+  { id: 'profile', label: t('Profile'), icon: 'bot', text: t('Who the bot is, how it works and what runs it.') },
+  { id: 'channels', label: t('Channels'), icon: 'globe', text: t('Talk to it from a browser, Telegram, Slack, Discord or WhatsApp.') },
+  { id: 'schedules', label: t('Schedules'), icon: 'refresh', text: t('Recurring or one-off work the bot starts on its own.') },
+  { id: 'memory', label: t('Memory'), icon: 'leaf', text: t('Kept across conversations. The bot adds its own as it learns.') },
+  { id: 'skills', label: t('Skills'), icon: 'widget', text: t('Library skills and MCP servers this bot uses, by reference. Nothing is copied.') },
+  { id: 'activity', label: t('Activity'), icon: 'activity', text: t('Conversations, approval rules and everything the bot did.') },
 ];
 const navFor = (section: Section): Nav => section === 'conversations' || section === 'rules' ? 'activity' : section;
 /** One labelled row, like a Settings row: title and hint on the left, the control on the right. */
 const row = (title: string, hint: string, control: string, stacked = false) => `<label class="bs-row ${stacked ? 'stacked' : ''}"><span class="bs-row-text"><strong>${title}</strong>${hint ? `<small>${escape(hint)}</small>` : ''}</span>${control}</label>`;
 const heading = (title: string, more = '') => `<h3 class="bs-heading">${escape(title)}${more}</h3>`;
-const MODES = [{ id: 'ask', label: 'Ask before acting' }, { id: 'auto', label: 'Auto-approve edits' }, { id: 'review', label: 'Approve for me' }, { id: 'plan', label: 'Plan only' }, { id: 'full', label: 'Full access' }];
+const MODES = [{ id: 'ask', label: t('Ask before acting') }, { id: 'auto', label: t('Auto-approve edits') }, { id: 'review', label: t('Approve for me') }, { id: 'plan', label: t('Plan only') }, { id: 'full', label: t('Full access') }];
 const providerModes = (provider: ProviderId) => MODES.filter(mode => mode.id === 'review' ? ['claude', 'glm', 'bigmodel', 'mimo'].includes(provider) : !(['github-copilot', 'devin'].includes(provider) && mode.id === 'auto'));
-const CHECK_INS = [{ minutes: 0, label: 'Off' }, { minutes: 30, label: 'Every 30 minutes' }, { minutes: 60, label: 'Every hour' }, { minutes: 180, label: 'Every 3 hours' }, { minutes: 360, label: 'Every 6 hours' }, { minutes: 1440, label: 'Once a day' }];
+const CHECK_INS = [{ minutes: 0, label: t('Off') }, { minutes: 30, label: t('Every 30 minutes') }, { minutes: 60, label: t('Every hour') }, { minutes: 180, label: t('Every 3 hours') }, { minutes: 360, label: t('Every 6 hours') }, { minutes: 1440, label: t('Once a day') }];
 
 /** Starting points, in the spirit of the named bots this feature follows. */
 export const TEMPLATES: { id: string; label: string; avatar: string; name: string; role: string; instructions: string; goals: string; heartbeatMinutes: number }[] = [
-  { id: 'chief', label: 'Chief of staff', avatar: 'panda:1', name: 'Leo', role: 'Chief of staff', instructions: 'Track my commitments and follow-ups. Summarize what changed since we last talked. Ask before sending anything on my behalf.', goals: 'Make sure I don\'t miss a ship date.\nI start each day knowing my top three priorities.', heartbeatMinutes: 360 },
-  { id: 'research', label: 'Researcher', avatar: 'panda:2', name: 'Researcher', role: 'Digs into questions and reports back', instructions: 'Research thoroughly using the web and local files. Cite sources with links. Lead with the answer, then the evidence.', goals: '', heartbeatMinutes: 0 },
-  { id: 'oncall', label: 'Dev On-call', avatar: 'panda:3', name: 'Dev On-call', role: 'Watches my projects and fixes small things', instructions: 'Work in this workspace. Before changing code, explain the plan. Run tests before saying something works.', goals: 'Keep the build green.\nTell me about failing tests or broken dependencies early.', heartbeatMinutes: 180 },
-  { id: 'inbox', label: 'Inbox Triage', avatar: 'panda:4', name: 'Inbox Triage', role: 'Sorts what needs me from what does not', instructions: 'When I forward messages or notifications, sort them into: needs me today, can wait, ignore. Draft short replies for the first group but never send them yourself.', goals: 'I only look at what actually needs me.', heartbeatMinutes: 0 },
-  { id: 'watch', label: 'Watcher', avatar: 'panda:5', name: 'Watcher', role: 'Keeps an eye on things and tells me when they change', instructions: 'Check the sources I give you. Only message me when something meaningfully changed, with the before and after and a link.', goals: '', heartbeatMinutes: 60 },
-  { id: 'blank', label: 'Blank', avatar: 'panda:0', name: '', role: '', instructions: '', goals: '', heartbeatMinutes: 0 },
+  { id: 'chief', label: t('Chief of staff'), avatar: 'panda:1', name: 'Leo', role: 'Chief of staff', instructions: 'Track my commitments and follow-ups. Summarize what changed since we last talked. Ask before sending anything on my behalf.', goals: 'Make sure I don\'t miss a ship date.\nI start each day knowing my top three priorities.', heartbeatMinutes: 360 },
+  { id: 'research', label: t('Researcher'), avatar: 'panda:2', name: 'Researcher', role: 'Digs into questions and reports back', instructions: 'Research thoroughly using the web and local files. Cite sources with links. Lead with the answer, then the evidence.', goals: '', heartbeatMinutes: 0 },
+  { id: 'oncall', label: t('Dev On-call'), avatar: 'panda:3', name: 'Dev On-call', role: 'Watches my projects and fixes small things', instructions: 'Work in this workspace. Before changing code, explain the plan. Run tests before saying something works.', goals: 'Keep the build green.\nTell me about failing tests or broken dependencies early.', heartbeatMinutes: 180 },
+  { id: 'inbox', label: t('Inbox Triage'), avatar: 'panda:4', name: 'Inbox Triage', role: 'Sorts what needs me from what does not', instructions: 'When I forward messages or notifications, sort them into: needs me today, can wait, ignore. Draft short replies for the first group but never send them yourself.', goals: 'I only look at what actually needs me.', heartbeatMinutes: 0 },
+  { id: 'watch', label: t('Watcher'), avatar: 'panda:5', name: 'Watcher', role: 'Keeps an eye on things and tells me when they change', instructions: 'Check the sources I give you. Only message me when something meaningfully changed, with the before and after and a link.', goals: '', heartbeatMinutes: 60 },
+  { id: 'blank', label: t('Blank'), avatar: 'panda:0', name: '', role: '', instructions: '', goals: '', heartbeatMinutes: 0 },
 ];
 /** A soul.md is copied into the bot once; the file is never read again. */
 const MAX_SOUL = 64 * 1024;
 /** Reads a soul.md as UTF-8 text, or explains why it cannot be used. */
 export async function readSoulFile(file: File): Promise<string> {
-  if (file.size > MAX_SOUL) throw new Error(`${file.name} is larger than 64 KB. Shorten it and try again.`);
+  if (file.size > MAX_SOUL) throw new Error(t`${file.name} is larger than 64 KB. Shorten it and try again.`);
   try { return new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer()).replace(/^\uFEFF/, ''); }
-  catch { throw new Error(`${file.name} is not UTF-8 text. Save it as UTF-8 Markdown and try again.`); }
+  catch { throw new Error(t`${file.name} is not UTF-8 text. Save it as UTF-8 Markdown and try again.`); }
 }
 
 export function age(at: number | null, now = Date.now()): string {
   if (!at) return '';
   const minutes = Math.round((at - now) / 60000);
   const format = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto', style: 'short' });
-  if (Math.abs(minutes) < 1) return at > now ? 'in a moment' : 'just now';
+  if (Math.abs(minutes) < 1) return at > now ? t('in a moment') : t('just now');
   if (Math.abs(minutes) < 60) return format.format(minutes, 'minute');
   if (Math.abs(minutes) < 1440) return format.format(Math.round(minutes / 60), 'hour');
   return format.format(Math.round(minutes / 1440), 'day');
@@ -123,7 +124,7 @@ export function mountBots(host: HTMLElement, options: BotsOptions): BotsView {
   host.classList.toggle('bots-single', single);
   host.innerHTML = single
     ? '<section class="bots-detail" aria-live="polite"></section>'
-    : '<aside class="bots-list" aria-label="Bots"></aside><section class="bots-detail" aria-live="polite"></section>';
+    : `<aside class="bots-list" aria-label="${t('Bots')}"></aside><section class="bots-detail" aria-live="polite"></section>`;
   const list = host.querySelector<HTMLElement>('.bots-list');
   const pane = host.querySelector<HTMLElement>('.bots-detail')!;
 
@@ -205,8 +206,8 @@ export function mountBots(host: HTMLElement, options: BotsOptions): BotsView {
 
   function renderList(): void {
     if (!list) return;
-    const rows = bots.map(bot => `<button type="button" class="bots-row" data-bot="${escape(bot.id)}" aria-current="${bot.id === selected && editing !== 'new'}">${avatar(bot)}<span class="bots-row-text"><b>${escape(bot.name)}</b><small>${escape(bot.paused ? 'Paused' : working(bot) ? 'Working…' : bot.role || 'Ready')}</small></span>${bot.paused ? `<span class="bots-dot paused" title="Paused"></span>` : working(bot) ? '<span class="bots-dot working" title="Working"></span>' : ''}</button>`).join('');
-    list.innerHTML = `<div class="bots-list-head"><span>Bots</span><button type="button" class="icon-button" data-bots-action="new" aria-label="New bot" title="New bot">${icon('plus')}</button></div><div class="bots-rows">${rows || '<p class="bots-empty-note">No bots yet.</p>'}</div>`;
+    const rows = bots.map(bot => `<button type="button" class="bots-row" data-bot="${escape(bot.id)}" aria-current="${bot.id === selected && editing !== 'new'}">${avatar(bot)}<span class="bots-row-text"><b>${escape(bot.name)}</b><small>${escape(bot.paused ? t('Paused') : working(bot) ? t('Working…') : bot.role || t('Ready'))}</small></span>${bot.paused ? `<span class="bots-dot paused" title="${t('Paused')}"></span>` : working(bot) ? `<span class="bots-dot working" title="${t('Working')}"></span>` : ''}</button>`).join('');
+    list.innerHTML = `<div class="bots-list-head"><span>${t('Bots')}</span><button type="button" class="icon-button" data-bots-action="new" aria-label="${t('New bot')}" title="${t('New bot')}">${icon('plus')}</button></div><div class="bots-rows">${rows || `<p class="bots-empty-note">${t('No bots yet.')}</p>`}</div>`;
   }
 
   function renderForm(bot: Bot | null): string {
@@ -218,37 +219,37 @@ export function mountBots(host: HTMLElement, options: BotsOptions): BotsView {
     const models = provider ? modelCatalogs.get(provider.id) ?? provider.models : [];
     const visibleModes = provider ? providerModes(provider.id) : MODES;
     const mode = visibleModes.some(item => item.id === source.mode) ? source.mode : 'ask';
-    const templates = bot ? '' : `<div class="bots-templates" role="group" aria-label="Start from">${TEMPLATES.map(item => `<button type="button" data-template="${item.id}" aria-pressed="${item.id === template.id}">${botAvatarHtml(item.avatar, item.label, 'bots-template-avatar')}${escape(item.label)}</button>`).join('')}</div>`;
-    const checkIns = `<select name="heartbeatMinutes" aria-label="Check-ins">${CHECK_INS.map(item => `<option value="${item.minutes}" ${item.minutes === source.heartbeatMinutes ? 'selected' : ''}>${item.label}</option>`).join('')}</select>`;
+    const templates = bot ? '' : `<div class="bots-templates" role="group" aria-label="${t('Start from')}">${TEMPLATES.map(item => `<button type="button" data-template="${item.id}" aria-pressed="${item.id === template.id}">${botAvatarHtml(item.avatar, item.label, 'bots-template-avatar')}${escape(item.label)}</button>`).join('')}</div>`;
+    const checkIns = `<select name="heartbeatMinutes" aria-label="${t('Check-ins')}">${CHECK_INS.map(item => `<option value="${item.minutes}" ${item.minutes === source.heartbeatMinutes ? 'selected' : ''}>${item.label}</option>`).join('')}</select>`;
     return `<form class="bots-form" novalidate>
-      ${bot ? '' : '<h3>New bot</h3><p class="bots-lede">A bot is an agent that lives on this computer. It remembers, works on a schedule, and answers you here, in a browser, or in Telegram, Slack, Discord and WhatsApp.</p>'}
+      ${bot ? '' : `<h3>${t('New bot')}</h3><p class="bots-lede">${t('A bot is an agent that lives on this computer. It remembers, works on a schedule, and answers you here, in a browser, or in Telegram, Slack, Discord and WhatsApp.')}</p>`}
       ${templates}
       <div class="bs-group">
-        <div class="bs-row stacked"><span class="bs-row-text"><strong>Icon</strong></span>${avatarPicker(source.avatar)}</div>
-        ${row('Name', '', `<input name="name" maxlength="60" required value="${escape(source.name)}" placeholder="Leo" aria-label="Name" autocomplete="off">`)}
-        ${row('Role', 'What it does, in a few words', `<input name="role" maxlength="200" value="${escape(source.role)}" placeholder="Chief of staff" aria-label="Role" autocomplete="off">`)}
-        ${row('Instructions', 'How it works: duties, workflows, when to interrupt you, report formats', `<textarea name="instructions" rows="4" maxlength="16000" aria-label="Instructions" placeholder="Bucket updates by impact. In a crisis, two sentences, then two or three options.">${escape(source.instructions)}</textarea>`, true)}
+        <div class="bs-row stacked"><span class="bs-row-text"><strong>${t('Icon')}</strong></span>${avatarPicker(source.avatar)}</div>
+        ${row(t('Name'), '', `<input name="name" maxlength="60" required value="${escape(source.name)}" placeholder="${t('Leo')}" aria-label="${t('Name')}" autocomplete="off">`)}
+        ${row(t('Role'), t('What it does, in a few words'), `<input name="role" maxlength="200" value="${escape(source.role)}" placeholder="${t('Chief of staff')}" aria-label="${t('Role')}" autocomplete="off">`)}
+        ${row(t('Instructions'), t('How it works: duties, workflows, when to interrupt you, report formats'), `<textarea name="instructions" rows="4" maxlength="16000" aria-label="${t('Instructions')}" placeholder="${t('Bucket updates by impact. In a crisis, two sentences, then two or three options.')}">${escape(source.instructions)}</textarea>`, true)}
       </div>
-      ${heading('Personality', infoMark('Optional. Tone, values and conversational style, kept apart from the instructions. Importing copies the file once; later changes to the file do not change the bot. Personality never grants tools or permissions.', 'About personality'))}
+      ${heading(t('Personality'), infoMark(t('Optional. Tone, values and conversational style, kept apart from the instructions. Importing copies the file once; later changes to the file do not change the bot. Personality never grants tools or permissions.'), t('About personality')))}
       <div class="bs-group">
-        <div class="bs-row stacked bots-soul"><span class="bs-row-text"><strong>Soul</strong><small>Markdown, up to 64 KB</small></span>
-          <textarea name="soul" rows="4" aria-label="Soul" placeholder="# Leo&#10;Dry wit, fiercely loyal, blunt under pressure.">${escape(source.soul)}</textarea>
-          <span class="bots-soul-actions"><button type="button" class="secondary-button" data-bots-action="soul-import">Import soul.md…</button><button type="button" class="secondary-button" data-bots-action="soul-remove" ${source.soul ? '' : 'hidden'}>Remove</button><input type="file" data-soul-file accept=".md,.markdown,.txt,text/markdown,text/plain" hidden></span>
+        <div class="bs-row stacked bots-soul"><span class="bs-row-text"><strong>${t('Soul')}</strong><small>${t('Markdown, up to 64 KB')}</small></span>
+          <textarea name="soul" rows="4" aria-label="${t('Soul')}" placeholder="# Leo&#10;Dry wit, fiercely loyal, blunt under pressure.">${escape(source.soul)}</textarea>
+          <span class="bots-soul-actions"><button type="button" class="secondary-button" data-bots-action="soul-import">${t('Import soul.md…')}</button><button type="button" class="secondary-button" data-bots-action="soul-remove" ${source.soul ? '' : 'hidden'}>${t('Remove')}</button><input type="file" data-soul-file accept=".md,.markdown,.txt,text/markdown,text/plain" hidden></span>
           <p class="bots-error bots-soul-error" role="alert" hidden></p>
         </div>
       </div>
-      ${heading('Agent')}
+      ${heading(t('Agent'))}
       <div class="bs-group">
-        ${row('Harness', '', `<select name="provider" aria-label="Harness">${providers.map(item => `<option value="${item.id}" ${item.id === provider?.id ? 'selected' : ''} ${!item.installed && hasInstalledProvider ? 'disabled' : ''}>${escape(item.name)}${!item.installed ? ' · Not installed' : ''}</option>`).join('')}</select>`)}
-        ${row('Model', '', `<select name="model" aria-label="Model" data-preferred-model="${escape(model)}">${provider ? modelOptions(provider.id, models, advertisedModelsOnly(provider.id) && model !== 'default' && !models.some(item => item.id === model) ? 'default' : model) : `<option value="default">Default</option>`}</select>`)}
-        ${row('Permissions', '', `<select name="mode" aria-label="Permissions">${visibleModes.map(item => `<option value="${item.id}" ${item.id === mode ? 'selected' : ''}>${item.label}</option>`).join('')}</select>`)}
+        ${row(t('Harness'), '', `<select name="provider" aria-label="${t('Harness')}">${providers.map(item => `<option value="${item.id}" ${item.id === provider?.id ? 'selected' : ''} ${!item.installed && hasInstalledProvider ? 'disabled' : ''}>${escape(item.name)}${!item.installed ? t(' · Not installed') : ''}</option>`).join('')}</select>`)}
+        ${row(t('Model'), '', `<select name="model" aria-label="${t('Model')}" data-preferred-model="${escape(model)}">${provider ? modelOptions(provider.id, models, advertisedModelsOnly(provider.id) && model !== 'default' && !models.some(item => item.id === model) ? 'default' : model) : `<option value="default">${t('Default')}</option>`}</select>`)}
+        ${row(t('Permissions'), '', `<select name="mode" aria-label="${t('Permissions')}">${visibleModes.map(item => `<option value="${item.id}" ${item.id === mode ? 'selected' : ''}>${item.label}</option>`).join('')}</select>`)}
       </div>
-      ${heading('Check-ins', infoMark('On each check-in the bot reviews its goals and memory using read-only steps, and messages you only when something needs attention.', 'About check-ins'))}
+      ${heading(t('Check-ins'), infoMark(t('On each check-in the bot reviews its goals and memory using read-only steps, and messages you only when something needs attention.'), t('About check-ins')))}
       <div class="bs-group">
-        ${row('Check in', '', checkIns)}
-        ${row('Standing goals', 'One per line. Check-ins work toward these.', `<textarea name="goals" rows="2" maxlength="16000" aria-label="Standing goals" placeholder="Make sure I don't miss a ship date">${escape(source.goals)}</textarea>`, true)}
+        ${row(t('Check in'), '', checkIns)}
+        ${row(t('Standing goals'), t('One per line. Check-ins work toward these.'), `<textarea name="goals" rows="2" maxlength="16000" aria-label="${t('Standing goals')}" placeholder="${t("Make sure I don't miss a ship date")}">${escape(source.goals)}</textarea>`, true)}
       </div>
-      <div class="dialog-footer">${!bot && bots.length ? '<button type="button" class="secondary-button" data-bots-action="cancel-edit">Cancel</button>' : ''}<button type="submit" class="primary-button">${bot ? 'Save' : 'Create bot'}</button></div>
+      <div class="dialog-footer">${!bot && bots.length ? `<button type="button" class="secondary-button" data-bots-action="cancel-edit">${t('Cancel')}</button>` : ''}<button type="submit" class="primary-button">${bot ? t('Save') : t('Create bot')}</button></div>
     </form>`;
   }
 
@@ -262,23 +263,25 @@ export function mountBots(host: HTMLElement, options: BotsOptions): BotsView {
   function renderHeader(bot: Bot): string {
     const harness = options.providers.find(item => item.id === bot.provider);
     const live = working(bot);
-    const state = bot.paused ? 'Paused' : live ? 'Working' : 'Ready';
-    const next = bot.heartbeatMinutes && bot.nextHeartbeatAt && !bot.paused ? `check-in ${age(bot.nextHeartbeatAt)}` : '';
+    const state = bot.paused ? t('Paused') : live ? t('Working') : t('Ready');
+    // The attribute is a CSS hook ([data-state=working]); the label is the text beside it.
+    const stateKey = bot.paused ? 'paused' : live ? 'working' : 'ready';
+    const next = bot.heartbeatMinutes && bot.nextHeartbeatAt && !bot.paused ? t`check-in ${age(bot.nextHeartbeatAt)}` : '';
     const meta = [bot.role, harness?.name, next].filter(Boolean).map(item => escape(item!)).join('<i aria-hidden="true">·</i>');
     return `<header class="bp-bar ${live ? 'is-working' : ''} ${bot.paused ? 'is-paused' : ''}"><span class="bots-ring bp-ring">${avatar(bot)}</span>
-      <div class="bp-id"><div class="bp-name-row"><h3 class="bp-name">${escape(bot.name)}</h3><span class="bp-state" data-state="${state.toLowerCase()}">${state}</span></div><p class="bp-meta">${meta}</p></div>
+      <div class="bp-id"><div class="bp-name-row"><h3 class="bp-name">${escape(bot.name)}</h3><span class="bp-state" data-state="${stateKey}">${state}</span></div><p class="bp-meta">${meta}</p></div>
       <div class="bp-actions">
-        <button type="button" class="secondary-button bp-open" data-bots-action="open-chat">${icon('chat')}<span>Open chat</span></button>
-        <button type="button" class="icon-button" data-bots-action="pause" aria-label="${bot.paused ? 'Resume' : 'Pause'}" title="${bot.paused ? 'Resume: schedules, check-ins and channels continue' : 'Pause: stop work and hold schedules and messages'}" aria-pressed="${bot.paused}">${icon(bot.paused ? 'play' : 'pause')}</button>
-        <span class="bp-more"><button type="button" class="icon-button" data-bots-action="more" aria-label="More" title="More" aria-haspopup="menu" aria-expanded="${moreOpen}">${icon('more')}</button>
-        ${moreOpen ? `<span class="bp-menu" role="menu"><button type="button" role="menuitem" data-bots-action="reset" aria-label="Reset bot">${icon('reset')}Reset…<small>Forget conversations, memories and schedules</small></button><button type="button" role="menuitem" class="danger" data-bots-action="delete" aria-label="Delete bot">${icon('trash')}Delete…<small>Remove the bot and its channels</small></button></span>` : ''}</span>
+        <button type="button" class="secondary-button bp-open" data-bots-action="open-chat">${icon('chat')}<span>${t('Open chat')}</span></button>
+        <button type="button" class="icon-button" data-bots-action="pause" aria-label="${bot.paused ? t('Resume') : t('Pause')}" title="${bot.paused ? t('Resume: schedules, check-ins and channels continue') : t('Pause: stop work and hold schedules and messages')}" aria-pressed="${bot.paused}">${icon(bot.paused ? 'play' : 'pause')}</button>
+        <span class="bp-more"><button type="button" class="icon-button" data-bots-action="more" aria-label="${t('More')}" title="${t('More')}" aria-haspopup="menu" aria-expanded="${moreOpen}">${icon('more')}</button>
+        ${moreOpen ? `<span class="bp-menu" role="menu"><button type="button" role="menuitem" data-bots-action="reset" aria-label="${t('Reset bot')}">${icon('reset')}${t('Reset…')}<small>${t('Forget conversations, memories and schedules')}</small></button><button type="button" role="menuitem" class="danger" data-bots-action="delete" aria-label="${t('Delete bot')}">${icon('trash')}${t('Delete…')}<small>${t('Remove the bot and its channels')}</small></button></span>` : ''}</span>
       </div></header>
-      ${bot.paused ? '<p class="bots-banner">Paused. Schedules, check-ins and channel messages wait until you resume.</p>' : ''}`;
+      ${bot.paused ? `<p class="bots-banner">${t('Paused. Schedules, check-ins and channel messages wait until you resume.')}</p>` : ''}`;
   }
 
   function badge(id: Nav): string {
     const pending = id === 'channels' ? detail?.pairings.filter(item => item.status === 'pending').length ?? 0 : 0;
-    if (pending) return `<span class="bots-badge" aria-label="${pending} waiting">${pending}</span>`;
+    if (pending) return `<span class="bots-badge" aria-label="${t`${pending} waiting`}">${pending}</span>`;
     const counts: Partial<Record<Nav, number>> = detail ? { memory: detail.memories.length, schedules: detail.schedules.filter(item => item.enabled).length, channels: detail.channels.filter(item => item.enabled).length } : {};
     return counts[id] ? `<span class="bots-count">${counts[id]}</span>` : '';
   }
@@ -286,21 +289,21 @@ export function mountBots(host: HTMLElement, options: BotsOptions): BotsView {
   function render(): void {
     if (disposed) return;
     renderList();
-    const confirm = confirming ? `<div class="bots-confirm" role="alertdialog" aria-label="${escape(confirming.title)}"><b>${escape(confirming.title)}</b><p>${escape(confirming.text)}</p><div class="dialog-footer"><button type="button" class="secondary-button" data-bots-action="confirm-cancel">Cancel</button><button type="button" class="primary-button danger" data-bots-action="confirm-run">${escape(confirming.button)}</button></div></div>` : '';
+    const confirm = confirming ? `<div class="bots-confirm" role="alertdialog" aria-label="${escape(confirming.title)}"><b>${escape(confirming.title)}</b><p>${escape(confirming.text)}</p><div class="dialog-footer"><button type="button" class="secondary-button" data-bots-action="confirm-cancel">${t('Cancel')}</button><button type="button" class="primary-button danger" data-bots-action="confirm-run">${escape(confirming.button)}</button></div></div>` : '';
     const alert = error ? `<p class="bots-error" role="alert">${escape(error)}</p>` : '';
-    if (loading) { pane.innerHTML = '<p class="dialog-loading" role="status">Loading bots…</p>'; return; }
+    if (loading) { pane.innerHTML = `<p class="dialog-loading" role="status">${t('Loading bots…')}</p>`; return; }
     if (editing === 'new' || !detail) {
-      pane.innerHTML = alert + (single && !detail ? '<p class="bots-empty-note">This bot no longer exists.</p>' : renderForm(null));
+      pane.innerHTML = alert + (single && !detail ? `<p class="bots-empty-note">${t('This bot no longer exists.')}</p>` : renderForm(null));
       hydrateFormModels();
       return;
     }
     // Keep a half-typed setting (a new memory, a schedule prompt) through background refreshes.
     const typing = pane.contains(document.activeElement) ? document.activeElement as HTMLInputElement | HTMLTextAreaElement : null;
     const kept = typing && 'value' in typing && typing.type !== 'checkbox' ? { name: typing.name || typing.getAttribute('aria-label') || '', value: typing.value } : null;
-    const nav = `<div class="bs-nav" role="tablist" aria-orientation="vertical" aria-label="Bot settings">${SECTIONS.map(item => `<button type="button" role="tab" id="bs-tab-${item.id}" data-section="${item.id}" aria-controls="bs-panel" aria-selected="${item.id === section}" tabindex="${item.id === section ? 0 : -1}">${icon(item.icon)}<span>${item.label}</span>${badge(item.id)}</button>`).join('')}</div>`;
+    const nav = `<div class="bs-nav" role="tablist" aria-orientation="vertical" aria-label="${t('Bot settings')}">${SECTIONS.map(item => `<button type="button" role="tab" id="bs-tab-${item.id}" data-section="${item.id}" aria-controls="bs-panel" aria-selected="${item.id === section}" tabindex="${item.id === section ? 0 : -1}">${icon(item.icon)}<span>${item.label}</span>${badge(item.id)}</button>`).join('')}</div>`;
     const current = SECTIONS.find(item => item.id === section)!;
     const body = section === 'profile' ? renderForm(detail.bot)
-      : section === 'activity' ? `${heading('Conversations')}${renderPanel('conversations', detail, context)}${heading('Rules', infoMark('Answer the bot\'s requests for you. Deny wins over allow, and * matches anything, as in npm test*. Risky actions such as sudo, force pushes, deleting files or anything about passwords always ask, whatever the rules say.', 'About rules'))}${renderPanel('rules', detail, context)}${heading('Activity log')}${renderPanel('activity', detail, context)}`
+      : section === 'activity' ? `${heading(t('Conversations'))}${renderPanel('conversations', detail, context)}${heading(t('Rules'), infoMark(t("Answer the bot's requests for you. Deny wins over allow, and * matches anything, as in npm test*. Risky actions such as sudo, force pushes, deleting files or anything about passwords always ask, whatever the rules say."), t('About rules')))}${renderPanel('rules', detail, context)}${heading(t('Activity log'))}${renderPanel('activity', detail, context)}`
       : renderPanel(section, detail, context);
     pane.innerHTML = `${renderHeader(detail.bot)}${confirm}${alert}<div class="bs-body">${nav}<div class="bots-panel" id="bs-panel" role="tabpanel" aria-labelledby="bs-tab-${section}"><div class="bs-panel-head"><h2>${current.label}</h2><p>${escape(current.text)}</p></div>${body}</div></div>`;
     hydrateFormModels();
@@ -331,9 +334,9 @@ export function mountBots(host: HTMLElement, options: BotsOptions): BotsView {
     else if (action === 'soul-import') pane.querySelector<HTMLInputElement>('input[data-soul-file]')?.click();
     else if (action === 'soul-remove') setSoul('');
     else if (action === 'open-chat' && bot) options.openChat(bot.id);
-    else if (action === 'pause' && bot) void work(async () => { await options.call('bot_set_paused', { botId: bot.id, paused: !bot.paused }); options.notify(bot.paused ? `${bot.name} resumed` : `${bot.name} paused`); await load(); });
-    else if (action === 'reset' && bot) context.confirm(`Reset ${bot.name}?`, 'This deletes its conversations, memories, schedules and activity. Its instructions, channels and rules stay.', 'Reset', async () => { await options.call('bot_reset', { botId: bot.id }); options.notify(`${bot.name} was reset`); await load(); });
-    else if (action === 'delete' && bot) context.confirm(`Delete ${bot.name}?`, 'This removes the bot, its conversations and its channel connections. Its workspace folder stays on disk.', 'Delete', async () => { await options.call('bot_delete', { botId: bot.id }); selected = ''; options.notify(`${bot.name} was deleted`); if (single) { options.onDeleted?.(); return; } await load(); });
+    else if (action === 'pause' && bot) void work(async () => { await options.call('bot_set_paused', { botId: bot.id, paused: !bot.paused }); options.notify(bot.paused ? t`${bot.name} resumed` : t`${bot.name} paused`); await load(); });
+    else if (action === 'reset' && bot) context.confirm(t`Reset ${bot.name}?`, t('This deletes its conversations, memories, schedules and activity. Its instructions, channels and rules stay.'), t('Reset'), async () => { await options.call('bot_reset', { botId: bot.id }); options.notify(t`${bot.name} was reset`); await load(); });
+    else if (action === 'delete' && bot) context.confirm(t`Delete ${bot.name}?`, t('This removes the bot, its conversations and its channel connections. Its workspace folder stays on disk.'), t('Delete'), async () => { await options.call('bot_delete', { botId: bot.id }); selected = ''; options.notify(t`${bot.name} was deleted`); if (single) { options.onDeleted?.(); return; } await load(); });
     else if (action === 'confirm-cancel') { confirming = null; render(); }
     else if (action === 'confirm-run' && confirming) { const run = confirming.action; confirming = null; render(); void work(run); }
     else if (section !== 'profile') panelClick(target, section, context);
@@ -344,13 +347,13 @@ export function mountBots(host: HTMLElement, options: BotsOptions): BotsView {
     event.preventDefault();
     if (!form.matches('.bots-form')) { if (section !== 'profile') panelSubmit(form, section, context); return; }
     const input = readForm(form);
-    if (!input.name) { error = 'Give the bot a name.'; render(); return; }
+    if (!input.name) { error = t('Give the bot a name.'); render(); return; }
     void work(async () => {
-      if (editing !== 'new' && detail) { await options.call('bot_update', { botId: detail.bot.id, input }); options.notify('Bot saved'); await load(); return; }
+      if (editing !== 'new' && detail) { await options.call('bot_update', { botId: detail.bot.id, input }); options.notify(t('Bot saved')); await load(); return; }
       // A new bot opens straight into its conversation, like a new task.
       const bot = await options.call<Bot>('bot_create', { input });
       selected = bot.id; editing = null; section = 'profile';
-      options.notify(`${bot.name} is ready`);
+      options.notify(t`${bot.name} is ready`);
       await load();
       options.openChat(bot.id);
     });
