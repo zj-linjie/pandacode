@@ -1994,6 +1994,26 @@ mod tests {
     }
 
     #[test]
+    fn bigmodel_default_is_the_real_documented_model_and_explicit_ids_win() {
+        for model in ["default", "glm-5.3-flash"] {
+            let mut cfg = config("bigmodel");
+            cfg.model = model.into();
+            let mut command = Command::new("claude");
+            super::super::configure_command(&mut command, &cfg);
+            let args = command
+                .as_std()
+                .get_args()
+                .map(|arg| arg.to_string_lossy().to_string())
+                .collect::<Vec<_>>();
+            let index = args.iter().position(|arg| arg == "--model").unwrap();
+            assert_eq!(
+                args[index + 1],
+                if model == "default" { "glm-5.3" } else { model }
+            );
+        }
+    }
+
+    #[test]
     fn grouped_acp_models_keep_labels_and_do_not_infer_effort_for_other_models() {
         let models = parse_models(
             &json!({"configOptions":[{"id":"model","category":"model","type":"select","currentValue":"a","options":[{"group":"vendor","options":[{"value":"a","name":"Actual A"},{"value":"b","name":"Actual B"}]}]},{"id":"effort","category":"thought_level","type":"select","currentValue":"high","options":[{"value":"high"}]}]}),

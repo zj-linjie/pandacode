@@ -161,7 +161,7 @@ use crate::providers::PROVIDERS;
 const UPDATABLE: [&str; 6] = ["claude", "codex", "kimi", "opencode", "grok", "cline"];
 
 fn family(provider: &str) -> &str {
-    if matches!(provider, "glm" | "mimo") {
+    if matches!(provider, "glm" | "bigmodel" | "mimo") {
         "claude"
     } else {
         provider
@@ -773,11 +773,12 @@ mod tests {
         std::os::unix::fs::symlink(&pinned, &launcher).unwrap();
         let groups = group_installations(vec![
             ("claude".into(), "Claude Code".into(), launcher.clone()),
-            ("glm".into(), "GLM".into(), launcher),
+            ("glm".into(), "GLM".into(), launcher.clone()),
+            ("bigmodel".into(), "BigModel".into(), launcher),
             ("mimo".into(), "MiMo".into(), pinned),
         ]);
         assert_eq!(groups.len(), 2);
-        assert_eq!(groups[0].providers, ["claude", "glm"]);
+        assert_eq!(groups[0].providers, ["claude", "glm", "bigmodel"]);
         assert_eq!(groups[1].providers, ["mimo"]);
         std::fs::remove_dir_all(dir).unwrap();
     }

@@ -3578,6 +3578,8 @@ pub fn run() {
                 provider_settings::provider_set_executable,
                 provider_settings::provider_save_glm_key,
                 provider_settings::provider_remove_glm_key,
+                provider_settings::provider_save_bigmodel_key,
+                provider_settings::provider_remove_bigmodel_key,
                 provider_settings::provider_save_mimo_key,
                 provider_settings::provider_remove_mimo_key,
                 provider_settings::provider_save_deepseek_key,

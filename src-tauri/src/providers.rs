@@ -34,6 +34,7 @@ mod claude_stream_tests;
 mod codex_stream_tests;
 #[cfg(all(test, unix))]
 pub(crate) mod concurrent_process_tests;
+mod bigmodel;
 mod cline;
 mod commandcode;
 mod extra_models;
@@ -70,12 +71,13 @@ const TOOL_INPUT_LIMIT: usize = 4096;
 const TOOL_OUTPUT_LIMIT: usize = 8192;
 const TOOL_CACHE_LIMIT: usize = 64;
 const PREVIEW_TRUNCATED: &str = "\n[Preview truncated]";
-pub(crate) const PROVIDERS: [(&str, &str); 17] = [
+pub(crate) const PROVIDERS: [(&str, &str); 18] = [
     ("claude", "Claude Code"),
     ("codex", "Codex"),
     ("kimi", "Kimi Code"),
     ("opencode", "OpenCode"),
     ("glm", "GLM Coding Plan"),
+    ("bigmodel", "BigModel Coding Plan"),
     ("antigravity", "Antigravity"),
     ("grok", "Grok Build"),
     ("mimo", "MiMo Token Plan"),
@@ -95,7 +97,7 @@ pub(crate) const CLAUDE_SESSION_BOUND_TOOLS: &str = "ScheduleWakeup,Monitor,Cron
 
 /// Never runs an agent-reviewed task under some other policy.
 fn review_supported(provider: &str, mode: &str) -> Result<(), String> {
-    if mode == "review" && !matches!(provider, "claude" | "glm" | "mimo") {
+    if mode == "review" && !matches!(provider, "claude" | "glm" | "bigmodel" | "mimo") {
         return Err("Approve for me needs Claude Code's auto mode; this harness has no agent-reviewed approvals. Choose another access mode.".into());
     }
     Ok(())
@@ -103,7 +105,7 @@ fn review_supported(provider: &str, mode: &str) -> Result<(), String> {
 
 /// Harnesses that take app instructions as a system prompt (`--append-system-prompt`).
 pub fn takes_system_instructions(provider: &str) -> bool {
-    matches!(provider, "claude" | "glm" | "mimo" | "pi" | "omp")
+    matches!(provider, "claude" | "glm" | "bigmodel" | "mimo" | "pi" | "omp")
 }
 
 #[derive(Clone, Debug)]
@@ -467,11 +469,12 @@ pub struct ReasoningEffortInfo {
 pub fn validate_reasoning_effort(provider: &str, effort: Option<&str>) -> Result<(), String> {
     let valid = match (provider, effort) {
         (
-            "claude" | "codex" | "kimi" | "glm" | "opencode" | "antigravity" | "grok" | "mimo"
-            | "pi" | "deepseek" | "commandcode" | "cline" | "kilo" | "omp" | "github-copilot" | "muse" | "devin",
+            "claude" | "codex" | "kimi" | "glm" | "bigmodel" | "opencode" | "antigravity" | "grok"
+                | "mimo" | "pi" | "deepseek" | "commandcode" | "cline" | "kilo" | "omp"
+                | "github-copilot" | "muse" | "devin",
             None,
         ) => true,
-        ("claude" | "glm" | "mimo", Some(value)) => {
+        ("claude" | "glm" | "bigmodel" | "mimo", Some(value)) => {
             ["low", "medium", "high", "xhigh", "max"].contains(&value)
         }
         // The current app-server schema deliberately permits catalog-defined effort IDs.
@@ -530,7 +533,7 @@ pub(crate) fn executable(name: &str) -> Option<PathBuf> {
 
 fn executable_name(name: &str) -> &str {
     match name {
-        "glm" | "mimo" => "claude",
+        "glm" | "bigmodel" | "mimo" => "claude",
         "antigravity" if cfg!(windows) => "agy_acp_server",
         "antigravity" => "agy_acp_server.par",
         "deepseek" => "dsh",
@@ -577,6 +580,14 @@ pub(crate) fn glm_arguments() -> Vec<String> {
 
 pub(crate) fn glm_environment() -> Result<Vec<(String, String)>, String> {
     glm::environment()
+}
+
+pub(crate) fn bigmodel_arguments() -> Vec<String> {
+    bigmodel::arguments()
+}
+
+pub(crate) fn bigmodel_environment() -> Result<Vec<(String, String)>, String> {
+    bigmodel::environment()
 }
 
 pub(crate) fn mimo_arguments() -> Result<Vec<String>, String> {
@@ -643,6 +654,8 @@ pub fn discover() -> Vec<ProviderInfo> {
             path: path.map(|p| p.to_string_lossy().into_owned()),
             models: if id == "glm" {
                 glm::models()
+            } else if id == "bigmodel" {
+                bigmodel::models()
             } else if id == "mimo" {
                 mimo::models()
             } else if id == "opencode" {
@@ -731,6 +744,7 @@ pub(crate) async fn list_model_catalog(provider: &str) -> Result<Vec<ModelInfo>,
         "kimi" => kimi_models::list(&path).await,
         "opencode" => extra_models::opencode(&path).await,
         "glm" => Ok(glm::models()),
+        "bigmodel" => Ok(bigmodel::models()),
         "antigravity" => acp::models(&path).await,
         "grok" => acp::grok_models(&path).await,
         "mimo" => Ok(mimo::models()),
@@ -2744,6 +2758,8 @@ fn configure_command(command: &mut Command, config: &RunConfig) {
                 command.args(["--model", &config.model]);
             } else if config.provider == "glm" {
                 command.args(["--model", glm::DEFAULT_MODEL]);
+            } else if config.provider == "bigmodel" {
+                command.args(["--model", bigmodel::DEFAULT_MODEL]);
             } else if config.provider == "mimo" {
                 command.args(["--model", mimo::DEFAULT_MODEL]);
             }
@@ -2773,6 +2789,7 @@ async fn run_inner(
         "kimi",
         "opencode",
         "glm",
+        "bigmodel",
         "antigravity",
         "grok",
         "mimo",
@@ -2824,6 +2841,8 @@ async fn run_inner(
     }
     let key = if config.provider == "glm" {
         Some(glm::configure(&mut command)?)
+    } else if config.provider == "bigmodel" {
+        Some(bigmodel::configure(&mut command)?)
     } else if config.provider == "mimo" {
         Some(mimo::configure(&mut command)?)
     } else if config.provider == "deepseek" {
@@ -2966,8 +2985,9 @@ async fn run_process_with_tools(
             (host.map(host_tools::HostTools::new).transpose()?, server)
         }
         (
-            "claude" | "glm" | "mimo" | "kimi" | "opencode" | "antigravity" | "grok" | "pi"
-            | "deepseek" | "commandcode" | "cline" | "kilo" | "omp" | "github-copilot" | "muse" | "devin",
+            "claude" | "glm" | "bigmodel" | "mimo" | "kimi" | "opencode" | "antigravity" | "grok"
+                | "pi" | "deepseek" | "commandcode" | "cline" | "kilo" | "omp"
+                | "github-copilot" | "muse" | "devin",
             Some(host),
         ) => (
             None,
@@ -2988,7 +3008,7 @@ async fn run_process_with_tools(
     let (mut child, mut group) = if let Some(spare) = spare {
         (spare.child, spare.group)
     } else {
-        if matches!(config.provider.as_str(), "claude" | "glm" | "mimo") {
+        if matches!(config.provider.as_str(), "claude" | "glm" | "bigmodel" | "mimo") {
             if let Some(server) = &mcp {
                 command.args(["--mcp-config", &server.claude_config().to_string()]);
             }
@@ -3352,7 +3372,7 @@ mod tests {
 
     #[test]
     fn approve_for_me_runs_only_where_the_harness_reviews_actions() {
-        for provider in ["claude", "glm", "mimo"] {
+        for provider in ["claude", "glm", "bigmodel", "mimo"] {
             assert!(review_supported(provider, "review").is_ok());
         }
         for provider in ["codex", "kimi", "opencode", "antigravity", "grok", "pi", "omp", "deepseek", "commandcode", "cline", "kilo", "github-copilot", "muse"] {
@@ -3395,7 +3415,7 @@ mod tests {
 
     #[test]
     fn claude_preview_tools_never_inherit_the_metadata_permission_exemption() {
-        for provider in ["claude", "glm", "mimo"] {
+        for provider in ["claude", "glm", "bigmodel", "mimo"] {
             for mode in ["ask", "auto", "plan"] {
                 for name in ["pandacode_run_project", "pandacode_preview_file"] {
                     let name = format!("mcp__pandacode_architect__{name}");
@@ -3479,7 +3499,7 @@ mod tests {
     #[test]
     fn claude_title_permission_is_silent_only_for_the_registered_metadata_tool() {
         let title_name = format!("mcp__pandacode_architect__{}", crate::session_titles::TOOL);
-        for provider in ["claude", "glm", "mimo"] {
+        for provider in ["claude", "glm", "bigmodel", "mimo"] {
             for mode in ["ask", "auto", "plan"] {
                 for (registered, name) in [(true, title_name.as_str()), (false, title_name.as_str()), (true, "mcp__other__pandacode_title"), (true, "mcp__pandacode_architect__pandacode_open_browser")] {
                     let mut cfg = config(provider);
@@ -3801,7 +3821,7 @@ mod tests {
 
     #[test]
     fn claude_and_glm_modes_override_resume_and_only_full_enables_bypass() {
-        for provider in ["claude", "glm"] {
+        for provider in ["claude", "glm", "bigmodel"] {
             for (mode, expected) in [
                 ("ask", "default"),
                 ("auto", "acceptEdits"),

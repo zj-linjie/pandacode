@@ -153,6 +153,8 @@ fn app_instructions_ride_the_cached_system_prompt_not_every_message() {
     // Background waits need a session that outlives the turn; PandaCode's does not.
     assert!(args.iter().any(|arg| arg == "--disallowedTools=ScheduleWakeup,Monitor,CronCreate"));
     assert!(args_for("glm", "x").iter().any(|arg| arg == "--append-system-prompt"));
+    assert!(args_for("bigmodel", "x").iter().any(|arg| arg == "--append-system-prompt"));
+    assert!(super::takes_system_instructions("bigmodel"));
     assert!(super::takes_system_instructions("mimo"));
     assert!(!super::takes_system_instructions("codex"));
 }

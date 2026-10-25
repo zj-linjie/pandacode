@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn inherit_preserves_credentials_and_subscription_only_changes_claude_children() {
-        for (provider, mode) in [("claude", Mode::Inherit), ("glm", Mode::Subscription), ("mimo", Mode::Subscription)] {
+        for (provider, mode) in [("claude", Mode::Inherit), ("glm", Mode::Subscription), ("bigmodel", Mode::Subscription), ("mimo", Mode::Subscription)] {
             let mut command = tokio::process::Command::new("claude");
             command.env("ANTHROPIC_API_KEY", "test-secret").env("ANTHROPIC_BASE_URL", "https://gateway.example");
             apply_mode(&mut command, provider, mode);

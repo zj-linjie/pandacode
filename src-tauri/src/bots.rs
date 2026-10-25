@@ -238,6 +238,7 @@ fn validate(input: &BotInput) -> Result<BotInput> {
             | "kimi"
             | "opencode"
             | "glm"
+            | "bigmodel"
             | "antigravity"
             | "grok"
             | "mimo"

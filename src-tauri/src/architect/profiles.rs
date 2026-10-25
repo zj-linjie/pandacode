@@ -31,6 +31,7 @@ impl ModelSelection {
             "kimi",
             "opencode",
             "glm",
+            "bigmodel",
             "antigravity",
             "grok",
             "mimo",

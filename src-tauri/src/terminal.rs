@@ -241,12 +241,14 @@ fn harness_command(context: &HarnessContext<'_>) -> Result<CommandBuilder, Strin
     let mut cmd = crate::providers::pty_command(&executable)?;
     for name in crate::providers::claude_auth::removed_environment(context.provider) { cmd.env_remove(name); }
     cmd.args(args);
-    if matches!(context.provider, "claude" | "glm" | "mimo") {
+    if matches!(context.provider, "claude" | "glm" | "bigmodel" | "mimo") {
         cmd.env_remove("CLAUDECODE");
     }
-    if matches!(context.provider, "glm" | "mimo") {
+    if matches!(context.provider, "glm" | "bigmodel" | "mimo") {
         let (arguments, environment) = if context.provider == "glm" {
             (crate::providers::glm_arguments(), crate::providers::glm_environment()?)
+        } else if context.provider == "bigmodel" {
+            (crate::providers::bigmodel_arguments(), crate::providers::bigmodel_environment()?)
         } else {
             (crate::providers::mimo_arguments()?, crate::providers::mimo_environment()?)
         };
@@ -255,6 +257,7 @@ fn harness_command(context: &HarnessContext<'_>) -> Result<CommandBuilder, Strin
             "ANTHROPIC_API_KEY",
             "CLAUDE_CODE_OAUTH_TOKEN",
             "ZAI_API_KEY",
+            "BIGMODEL_API_KEY",
             "MIMO_API_KEY",
             "CLAUDE_CODE_USE_BEDROCK",
             "CLAUDE_CODE_USE_VERTEX",
@@ -286,7 +289,7 @@ fn harness_arguments(context: &HarnessContext<'_>) -> Result<Vec<String>, String
     if provider == "antigravity" {
         return Err("Antigravity's ACP server does not have an interactive console. Use its synced commands in the composer, or open the agy CLI separately.".into());
     }
-    if !matches!(provider, "codex" | "claude" | "kimi" | "glm" | "opencode" | "grok" | "mimo" | "pi" | "omp" | "github-copilot" | "muse" | "cline" | "devin") {
+    if !matches!(provider, "codex" | "claude" | "kimi" | "glm" | "bigmodel" | "opencode" | "grok" | "mimo" | "pi" | "omp" | "github-copilot" | "muse" | "cline" | "devin") {
         return Err("Choose a supported coding harness.".into());
     }
     if provider == "github-copilot" {
@@ -326,7 +329,7 @@ fn harness_arguments(context: &HarnessContext<'_>) -> Result<Vec<String>, String
         args.push(
             match provider {
                 "codex" | "muse" => "resume",
-                "claude" | "glm" | "mimo" | "grok" | "devin" => "--resume",
+                "claude" | "glm" | "bigmodel" | "mimo" | "grok" | "devin" => "--resume",
                 "cline" => "--id",
                 _ => "--session",
             }
@@ -357,7 +360,7 @@ fn harness_arguments(context: &HarnessContext<'_>) -> Result<Vec<String>, String
                 args.push("--approve-for-me".into());
             }
         }
-        "claude" | "glm" | "mimo" => {
+        "claude" | "glm" | "bigmodel" | "mimo" => {
             let mode = match context.mode {
                 "plan" => "plan",
                 "full" => "bypassPermissions",
@@ -444,6 +447,8 @@ fn harness_arguments(context: &HarnessContext<'_>) -> Result<Vec<String>, String
         args.extend(["--model".into(), model.into()]);
     } else if provider == "glm" {
         args.extend(["--model".into(), "glm-5.3".into()]);
+    } else if provider == "bigmodel" {
+        args.extend(["--model".into(), "glm-5.3".into()]);
     } else if provider == "mimo" {
         args.extend(["--model".into(), "mimo-v2.6-pro".into()]);
     }
@@ -454,7 +459,7 @@ fn harness_arguments(context: &HarnessContext<'_>) -> Result<Vec<String>, String
                 "--config".into(),
                 format!("model_reasoning_effort=\"{effort}\""),
             ]),
-            "claude" | "glm" | "mimo" => args.extend(["--effort".into(), effort.into()]),
+            "claude" | "glm" | "bigmodel" | "mimo" => args.extend(["--effort".into(), effort.into()]),
             "grok" => args.extend(["--reasoning-effort".into(), effort.into()]),
             "pi" | "omp" | "cline" => args.extend(["--thinking".into(), effort.into()]),
             "muse" => args.extend(["--reasoning-effort".into(), effort.into()]),
@@ -933,6 +938,7 @@ mod tests {
             ("claude", "--resume"),
             ("kimi", "--session"),
             ("glm", "--resume"),
+            ("bigmodel", "--resume"),
             ("opencode", "--session"),
             ("cline", "--id"),
         ] {
@@ -1144,6 +1150,15 @@ mod tests {
         })
         .unwrap_err()
         .contains("ACP server"));
+        // BigModel shares GLM's model group, so its default is the same CLI model.
+        let bigmodel = harness_arguments(&HarnessContext {
+            provider: "bigmodel",
+            model: None,
+            mode: "auto",
+            ..context
+        })
+        .unwrap();
+        assert_eq!(bigmodel, ["--permission-mode", "acceptEdits", "--model", "glm-5.3"]);
         // Grok Build's TUI resumes by ID and takes its native permission modes.
         let args = harness_arguments(&HarnessContext {
             provider: "grok",
@@ -1180,7 +1195,7 @@ mod tests {
         .unwrap();
         assert_eq!(mimo, ["--permission-mode", "acceptEdits", "--model", "mimo-v2.6-pro"]);
         // Approve for me is Claude Code's auto mode, as in task runs.
-        for provider in ["claude", "glm", "mimo"] {
+        for provider in ["claude", "glm", "bigmodel", "mimo"] {
             let review = harness_arguments(&HarnessContext { provider, mode: "review", ..context }).unwrap();
             assert!(review.windows(2).any(|args| args == ["--permission-mode", "auto"]), "{provider}");
         }

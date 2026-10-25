@@ -1032,6 +1032,7 @@ impl Store {
             "kimi",
             "opencode",
             "glm",
+            "bigmodel",
             "antigravity",
             "grok",
             "mimo",
@@ -1218,6 +1219,7 @@ impl Store {
             "kimi",
             "opencode",
             "glm",
+            "bigmodel",
             "antigravity",
             "grok",
             "mimo",
@@ -1739,6 +1741,7 @@ fn handoff_from_provider(content: &str) -> Option<String> {
                 | "kimi"
                 | "opencode"
                 | "glm"
+                | "bigmodel"
                 | "antigravity"
                 | "grok"
                 | "mimo"
@@ -3512,6 +3515,7 @@ mod tests {
                 "codex",
                 "kimi",
                 "glm",
+                "bigmodel",
                 "opencode",
                 "antigravity",
                 "grok",

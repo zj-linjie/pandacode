@@ -441,7 +441,7 @@ fn scan_harness_configs(
 ) -> Vec<CapabilityEntry> {
     let mut entries = Vec::new();
     match harness {
-        "claude" | "glm" | "mimo" => {
+        "claude" | "glm" | "bigmodel" | "mimo" => {
             if let Some(value) = read_json(&home.join(".claude.json")) {
                 entries.extend(parse_mcp_json(
                     harness,
@@ -604,7 +604,7 @@ fn scan_harness_configs(
 fn skill_roots(harness: &str, home: &Path, project: Option<&Path>) -> Vec<(PathBuf, &'static str)> {
     let mut roots = Vec::new();
     match harness {
-        "claude" | "glm" | "mimo" => {
+        "claude" | "glm" | "bigmodel" | "mimo" => {
             roots.push((home.join(".claude/skills"), "~/.claude/skills"));
             if let Some(project) = project {
                 roots.push((project.join(".claude/skills"), ".claude/skills"));

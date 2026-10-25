@@ -24,7 +24,7 @@ const MAX_NAME: usize = 60;
 // on task deletion if this ever matters.
 const MAX_TASKS: usize = 5000;
 const PROVIDERS: &[&str] = &[
-    "claude", "codex", "kimi", "opencode", "glm", "antigravity", "grok", "mimo", "pi", "deepseek", "commandcode", "cline", "kilo", "omp", "github-copilot", "muse", "devin",
+    "claude", "codex", "kimi", "opencode", "glm", "bigmodel", "antigravity", "grok", "mimo", "pi", "deepseek", "commandcode", "cline", "kilo", "omp", "github-copilot", "muse", "devin",
 ];
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -112,7 +112,7 @@ pub fn get(id: &str) -> Option<Connection> {
 /// The folder variable each harness reads for its own config and login.
 fn config_dir_var(provider: &str) -> Option<&'static str> {
     match provider {
-        "claude" | "glm" | "mimo" => Some("CLAUDE_CONFIG_DIR"),
+        "claude" | "glm" | "bigmodel" | "mimo" => Some("CLAUDE_CONFIG_DIR"),
         "codex" => Some("CODEX_HOME"),
         "pi" => Some("PI_CODING_AGENT_DIR"),
         "opencode" => Some("OPENCODE_CONFIG_DIR"),

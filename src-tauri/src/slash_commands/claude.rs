@@ -42,9 +42,11 @@ fn discovery_command(path: &Path, provider: &str) -> Result<Command, String> {
         "stdio",
         "--no-session-persistence",
     ]);
-    if matches!(provider, "glm" | "mimo") {
+    if matches!(provider, "glm" | "bigmodel" | "mimo") {
         let mut args = if provider == "glm" {
             crate::providers::glm_arguments()
+        } else if provider == "bigmodel" {
+            crate::providers::bigmodel_arguments()
         } else {
             crate::providers::mimo_arguments()?
         };
@@ -53,12 +55,13 @@ fn discovery_command(path: &Path, provider: &str) -> Result<Command, String> {
         *args.last_mut().unwrap() = settings.to_string();
         command.args(args);
         // Metadata initialization requires no account. In particular, never
-        // forward the user's regular Claude credential to the Z.AI endpoint.
+        // forward the user's regular Claude credential to the relay endpoint.
         for name in [
             "ANTHROPIC_API_KEY",
             "ANTHROPIC_AUTH_TOKEN",
             "CLAUDE_CODE_OAUTH_TOKEN",
             "ZAI_API_KEY",
+            "BIGMODEL_API_KEY",
             "MIMO_API_KEY",
             "CLAUDE_CODE_USE_BEDROCK",
             "CLAUDE_CODE_USE_VERTEX",

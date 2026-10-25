@@ -4,10 +4,10 @@ use crate::Result;
 use std::time::Duration;
 
 /// Harnesses that can run on a cloud machine.
-pub(crate) const HARNESSES: [&str; 5] = ["claude", "glm", "mimo", "codex", "opencode"];
+pub(crate) const HARNESSES: [&str; 6] = ["claude", "glm", "bigmodel", "mimo", "codex", "opencode"];
 
 /// Makes sure `harness` can run on the machine; returns the absolute path of the program
-/// to execute there (for `glm`/`mimo`, Claude Code). Idempotent and quick when installed.
+/// to execute there (for `glm`/`bigmodel`/`mimo`, Claude Code). Idempotent and quick when installed.
 pub(crate) fn ensure_runtime(
     sandbox: &dyn Sandbox,
     native: &str,
@@ -21,12 +21,12 @@ pub(crate) fn ensure_runtime(
         ));
     }
     let cli = match harness {
-        "claude" | "glm" | "mimo" => "claude",
+        "claude" | "glm" | "bigmodel" | "mimo" => "claude",
         "codex" => "codex",
         "opencode" => "opencode",
         _ => unreachable!(),
     };
-    let onboarding = if matches!(harness, "claude" | "glm" | "mimo") {
+    let onboarding = if matches!(harness, "claude" | "glm" | "bigmodel" | "mimo") {
         r#"  if [ ! -e "$HOME/.claude.json" ]; then
     (umask 077; printf '{"hasCompletedOnboarding":true}\n' > "$HOME/.claude.json")
     chmod 600 "$HOME/.claude.json"
@@ -57,12 +57,12 @@ fi
 
     let (arch, libc) = detect_linux(sandbox, native)?;
     let mut tools = vec!["git", "curl", "tar"];
-    if matches!(harness, "claude" | "glm" | "mimo") {
+    if matches!(harness, "claude" | "glm" | "bigmodel" | "mimo") {
         tools.push("bash");
     }
     ensure_tools(sandbox, native, &tools, progress)?;
     match harness {
-        "claude" | "glm" | "mimo" => {
+        "claude" | "glm" | "bigmodel" | "mimo" => {
             progress("Installing Claude Code…");
             let attempt = sandbox.exec(native, r#"set -u
 home=$(cd "$HOME" && pwd -P)
@@ -110,7 +110,7 @@ npm install -g --prefix "$home/.pandacode/npm" {}
         _ => unreachable!(),
     }
     let path = mark_runtime(sandbox, native, harness, cli)?;
-    if matches!(harness, "claude" | "glm" | "mimo") {
+    if matches!(harness, "claude" | "glm" | "bigmodel" | "mimo") {
         ensure_onboarding_file(sandbox, native)?;
     }
     Ok(path)

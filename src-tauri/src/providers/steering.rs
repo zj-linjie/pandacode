@@ -40,7 +40,7 @@ fn texts(content: &Value) -> Vec<&str> {
 
 impl Protocol {
     fn claude_family(&self) -> bool {
-        matches!(self.config.provider.as_str(), "claude" | "glm" | "mimo")
+        matches!(self.config.provider.as_str(), "claude" | "glm" | "bigmodel" | "mimo")
     }
 
     pub(super) fn steer(&mut self, id: String, text: String, reply: RpcReply) -> Step {

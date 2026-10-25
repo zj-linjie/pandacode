@@ -41,6 +41,11 @@ pub const GLM_KEY: Credential = Credential {
     label: "GLM",
     env: "ZAI_API_KEY",
 };
+pub const BIGMODEL_KEY: Credential = Credential {
+    account: "bigmodel-coding-plan",
+    label: "BigModel",
+    env: "BIGMODEL_API_KEY",
+};
 pub const MIMO_KEY: Credential = Credential {
     account: "mimo-token-plan",
     label: "MiMo",
@@ -92,6 +97,10 @@ pub fn executable_override(provider: &str) -> Option<PathBuf> {
 
 pub fn glm_key() -> Result<Option<String>> {
     stored_key(GLM_KEY)
+}
+
+pub fn bigmodel_key() -> Result<Option<String>> {
+    stored_key(BIGMODEL_KEY)
 }
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -268,6 +277,8 @@ pub struct Configuration {
     executable_paths: BTreeMap<String, String>,
     glm_key_saved: bool,
     glm_key_from_environment: bool,
+    bigmodel_key_saved: bool,
+    bigmodel_key_from_environment: bool,
     mimo_key_saved: bool,
     mimo_key_from_environment: bool,
     deepseek_key_saved: bool,
@@ -292,26 +303,30 @@ fn configuration() -> Result<Configuration> {
         (runtime.settings.executable_paths.clone(), runtime.settings.mimo_endpoint.clone(), runtime.settings.claude_connection_mode)
     };
     #[cfg(target_os = "macos")]
-    let (glm_key_saved, mimo_key_saved, deepseek_key_saved, commandcode_key_saved, credential_storage_error) = (
+    let (glm_key_saved, bigmodel_key_saved, mimo_key_saved, deepseek_key_saved, commandcode_key_saved, credential_storage_error) = (
         glm_key()?.is_some(),
+        bigmodel_key()?.is_some(),
         mimo_key()?.is_some(),
         deepseek_key()?.is_some(),
         commandcode_key()?.is_some(),
         None,
     );
     #[cfg(not(target_os = "macos"))]
-    let (glm_key_saved, mimo_key_saved, deepseek_key_saved, commandcode_key_saved, credential_storage_error) = {
+    let (glm_key_saved, bigmodel_key_saved, mimo_key_saved, deepseek_key_saved, commandcode_key_saved, credential_storage_error) = {
         let (glm, glm_error) = credential_status(glm_key());
+        let (bigmodel, bigmodel_error) = credential_status(bigmodel_key());
         let (mimo, mimo_error) = credential_status(mimo_key());
         let (deepseek, deepseek_error) = credential_status(deepseek_key());
         let (commandcode, commandcode_error) = credential_status(commandcode_key());
-        (glm, mimo, deepseek, commandcode, glm_error.or(mimo_error).or(deepseek_error).or(commandcode_error))
+        (glm, bigmodel, mimo, deepseek, commandcode, glm_error.or(bigmodel_error).or(mimo_error).or(deepseek_error).or(commandcode_error))
     };
     let from_environment = |name: &str| std::env::var(name).is_ok_and(|key| validate_key(&key).is_ok());
     Ok(Configuration {
         executable_paths: paths,
         glm_key_saved,
         glm_key_from_environment: from_environment(GLM_KEY.env),
+        bigmodel_key_saved,
+        bigmodel_key_from_environment: from_environment(BIGMODEL_KEY.env),
         mimo_key_saved,
         mimo_key_from_environment: from_environment(MIMO_KEY.env),
         deepseek_key_saved,
@@ -345,7 +360,7 @@ pub async fn provider_configuration() -> Result<Configuration> {
 fn validated_executable(provider: &str, path: &str) -> Result<Option<String>> {
     if !matches!(
         provider,
-        "opencode" | "antigravity" | "glm" | "grok" | "mimo" | "pi" | "deepseek" | "commandcode" | "cline" | "kilo" | "omp" | "github-copilot" | "muse" | "devin"
+        "opencode" | "antigravity" | "glm" | "bigmodel" | "grok" | "mimo" | "pi" | "deepseek" | "commandcode" | "cline" | "kilo" | "omp" | "github-copilot" | "muse" | "devin"
     ) {
         return Err("This provider does not support an executable override.".into());
     }
@@ -535,6 +550,24 @@ pub async fn provider_remove_glm_key() -> Result<Configuration> {
     .await
 }
 #[tauri::command]
+pub async fn provider_save_bigmodel_key(key: String) -> Result<Configuration> {
+    crate::blocking(move || {
+        save_key(BIGMODEL_KEY, &key)?;
+        crate::agent_usage::invalidate("bigmodel");
+        configuration()
+    })
+    .await
+}
+#[tauri::command]
+pub async fn provider_remove_bigmodel_key() -> Result<Configuration> {
+    crate::blocking(|| {
+        remove_key(BIGMODEL_KEY)?;
+        crate::agent_usage::invalidate("bigmodel");
+        configuration()
+    })
+    .await
+}
+#[tauri::command]
 pub async fn provider_save_mimo_key(key: String) -> Result<Configuration> {
     crate::blocking(move || {
         save_key(MIMO_KEY, &key)?;
@@ -664,6 +697,8 @@ mod tests {
             executable_paths: BTreeMap::new(),
             glm_key_saved,
             glm_key_from_environment: false,
+            bigmodel_key_saved: false,
+            bigmodel_key_from_environment: false,
             mimo_key_saved: false,
             mimo_key_from_environment: false,
             deepseek_key_saved: false,
@@ -687,6 +722,8 @@ mod tests {
             executable_paths: BTreeMap::from([("glm".into(), "installed-executable".into())]),
             glm_key_saved,
             glm_key_from_environment: true,
+            bigmodel_key_saved: false,
+            bigmodel_key_from_environment: false,
             mimo_key_saved: true,
             mimo_key_from_environment: false,
             deepseek_key_saved: false,
@@ -863,6 +900,7 @@ mod tests {
         assert!(validated_executable("opencode", "/tmp").is_err());
         assert!(validated_executable("antigravity", "/tmp/foo\nbar").is_err());
         assert_eq!(validated_executable("glm", "").unwrap(), None);
+        assert_eq!(validated_executable("bigmodel", "").unwrap(), None);
         assert_eq!(validated_executable("mimo", "").unwrap(), None);
     }
     #[test]

@@ -52,7 +52,7 @@ pub(super) async fn load(provider: &str, paths: &[PathBuf]) -> Result<Vec<Value>
         // Kimi: https://agentclientprotocol.com/protocol/v1/content#image-content
         images.push(match provider {
             "codex" => json!({"type":"localImage","path":path}),
-            "claude" | "glm" | "mimo" => json!({"type":"image","source":{
+            "claude" | "glm" | "bigmodel" | "mimo" => json!({"type":"image","source":{
                 "type":"base64","media_type":"image/png","data":STANDARD.encode(&bytes)
             }}),
             // Cline's ACP prompt keeps only text blocks; its read_files tool opens images.
@@ -106,10 +106,10 @@ mod tests {
         );
         let codex = load("codex", &paths).await.unwrap();
         assert_eq!(codex, vec![json!({"type":"localImage","path":file.0})]);
-        for provider in ["glm", "mimo", "opencode", "kilo", "antigravity", "grok"] {
+        for provider in ["glm", "bigmodel", "mimo", "opencode", "kilo", "antigravity", "grok"] {
             let blocks = load(provider, &paths).await.unwrap();
             assert_eq!(blocks[0]["type"], "image");
-            if matches!(provider, "glm" | "mimo") {
+            if matches!(provider, "glm" | "bigmodel" | "mimo") {
                 assert_eq!(blocks[0]["source"]["media_type"], "image/png");
             } else {
                 assert_eq!(blocks[0]["mimeType"], "image/png");

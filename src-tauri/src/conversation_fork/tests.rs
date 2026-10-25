@@ -157,7 +157,7 @@ fn inclusive_forks_are_isolated_complete_and_repeatable_across_pages() {
 
 #[test]
 fn each_harness_recovers_only_the_prefix_including_a_first_user_boundary() {
-    for provider in ["codex", "claude", "kimi", "opencode", "glm", "antigravity", "grok", "mimo"] {
+    for provider in ["codex", "claude", "kimi", "opencode", "glm", "bigmodel", "antigravity", "grok", "mimo"] {
         let (store, source) = fixture(provider);
         let first = append(
             &store,

@@ -521,7 +521,7 @@ fn is_sha(value: &str) -> bool {
 
 fn state_dir(harness: &str, remote_dir: &str, home: &str) -> Result<String> {
     let relative = match harness {
-        "claude" | "glm" | "mimo" => {
+        "claude" | "glm" | "bigmodel" | "mimo" => {
             if !remote_dir.starts_with('/') {
                 return Err("Cloud checkout paths must be absolute.".into());
             }

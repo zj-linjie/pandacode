@@ -16,7 +16,7 @@ pub(crate) fn push(
     native: &str,
     harness: &str,
 ) -> Result<Vec<(String, String)>> {
-    if !["claude", "glm", "mimo", "codex", "opencode"].contains(&harness) {
+    if !["claude", "glm", "bigmodel", "mimo", "codex", "opencode"].contains(&harness) {
         return Err(format!("Unsupported cloud agent harness '{harness}'."));
     }
     let home = local_home()?;
@@ -24,7 +24,7 @@ pub(crate) fn push(
     let mut env = vec![("IS_SANDBOX".into(), "1".into())];
     match harness {
         "claude" => push_claude(sandbox, native, &remote_home, &mut env)?,
-        "glm" | "mimo" => push_relay_key(harness, &mut env)?,
+        "glm" | "bigmodel" | "mimo" => push_relay_key(harness, &mut env)?,
         "codex" => push_codex(sandbox, native, &home, &remote_home, &mut env)?,
         "opencode" => push_file_login(
             sandbox,
@@ -140,6 +140,8 @@ fn read_optional(path: &Path, label: &str) -> Result<Option<Vec<u8>>> {
 fn push_relay_key(harness: &str, env: &mut Vec<(String, String)>) -> Result<()> {
     let (saved, variable) = if harness == "glm" {
         (crate::provider_settings::glm_key(), "ZAI_API_KEY")
+    } else if harness == "bigmodel" {
+        (crate::provider_settings::bigmodel_key(), "BIGMODEL_API_KEY")
     } else {
         (crate::provider_settings::mimo_key(), "MIMO_API_KEY")
     };
@@ -158,6 +160,11 @@ fn push_relay_key(harness: &str, env: &mut Vec<(String, String)>) -> Result<()> 
                     "Add your Z.AI Coding Plan API key in Settings → Agents, or set ZAI_API_KEY."
                         .into(),
                 );
+            } else if harness == "bigmodel" {
+                return Err(
+                    "Add your BigModel Coding Plan API key in Settings → Agents, or set BIGMODEL_API_KEY."
+                        .into(),
+                );
             } else {
                 return Err("Add your MiMo API key in Settings → Agents → Provider connections, or set MIMO_API_KEY.".into());
             }
@@ -165,6 +172,8 @@ fn push_relay_key(harness: &str, env: &mut Vec<(String, String)>) -> Result<()> 
     };
     let base_url = if harness == "glm" {
         "https://api.z.ai/api/anthropic".to_owned()
+    } else if harness == "bigmodel" {
+        "https://open.bigmodel.cn/api/anthropic".to_owned()
     } else {
         crate::provider_settings::mimo_endpoint()
             .and_then(|id| crate::providers::mimo_endpoint_url(&id).map(str::to_owned))
@@ -172,7 +181,7 @@ fn push_relay_key(harness: &str, env: &mut Vec<(String, String)>) -> Result<()> 
                 "Choose your MiMo Token Plan cluster in Settings → Agents → Provider connections.",
             )?
     };
-    let (model, fast_model) = if harness == "glm" {
+    let (model, fast_model) = if harness == "glm" || harness == "bigmodel" {
         ("glm-5.3", "glm-5.3-flash")
     } else {
         ("mimo-v2.6-pro", "mimo-v2.6-flash")
