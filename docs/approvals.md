@@ -29,6 +29,7 @@ Full access maps to the following supported native mechanisms:
 | --- | --- |
 | Claude Code | `--permission-mode bypassPermissions` with `--allow-dangerously-skip-permissions` |
 | GLM Coding Plan | The same Claude Code permission flags, with the isolated Z.AI provider configuration |
+| BigModel Coding Plan | The same Claude Code permission flags, with the isolated Zhipu BigModel provider configuration |
 | Codex | `danger-full-access` sandbox, `never` approval policy, and `dangerFullAccess` on each turn |
 | Kimi Code | Its advertised ACP `auto` mode (unattended execution); PandaCode waits for mode acknowledgement |
 | OpenCode | Process-local `permission: { "*": "allow" }` for the selected built-in agent and matching ACP approvals |
@@ -120,7 +121,7 @@ Codex mappings were checked against its installed app-server schema for
 ## Approve for me (agent-reviewed approvals)
 
 `review` is the agent-reviewed policy, the same option bots offer under Permissions.
-Claude Code, GLM and MiMo launch with `--permission-mode auto`, which needs a Claude
+Claude Code, GLM, BigModel and MiMo launch with `--permission-mode auto`, which needs a Claude
 Code release with auto mode; an older CLI rejects the flag and the turn fails rather
 than running under another policy. Codex's own agent review is its `auto` choice.
 No other harness can represent it: the menu does not offer it, a task that
@@ -133,7 +134,7 @@ Plan mode blocks implementation, not research. Per harness:
 
 | Harness | Reads and web lookups in Plan mode |
 | --- | --- |
-| Claude Code, GLM, MiMo | `Read`, `Grep`, `Glob`, `LS`, `NotebookRead`, `WebFetch` and `WebSearch` run without asking, also outside the project. Paths that look like credentials (`.ssh`, `.aws`, `.env`, keys, PandaCode's app data, …) still ask; Claude's own deny rules apply first. Edits stay blocked by Claude's plan mode, and commands ask. |
+| Claude Code, GLM, BigModel, MiMo | `Read`, `Grep`, `Glob`, `LS`, `NotebookRead`, `WebFetch` and `WebSearch` run without asking, also outside the project. Paths that look like credentials (`.ssh`, `.aws`, `.env`, keys, PandaCode's app data, …) still ask; Claude's own deny rules apply first. Edits stay blocked by Claude's plan mode, and commands ask. |
 | Codex | Its `read-only` sandbox already reads anywhere; shell network stays off. Codex's own web search is unchanged. |
 | OpenCode | Plan permission adds `webfetch`, `websearch` and `list`; `external_directory` asks; everything else is denied. |
 | Cline | Plan mode also allows `fetch` requests; edits, deletes and moves are declined, commands ask. |

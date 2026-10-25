@@ -43,7 +43,7 @@ no application IPC access.
 The installed app-server persists dynamic tools with newly created threads.
 Its `thread/resume` API cannot add them to a conversation created without them.
 Older tasks retain their original coding/MCP tools; start a new Codex task to use
-newly added PandaCode app tools. Claude, GLM, Kimi, OpenCode, and Antigravity receive
+newly added PandaCode app tools. Claude, GLM, BigModel, Kimi, OpenCode, and Antigravity receive
 these host tools through the authenticated, run-local MCP bridge where the
 provider supports HTTP MCP. Codex uses its dynamic tool interface. Provider-owned
 tools and integrations continue through their own protocols and configuration.

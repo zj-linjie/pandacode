@@ -47,6 +47,7 @@ These projects informed the approach and response interpretation. PandaCode uses
 | Claude Code | Direct Claude OAuth usage endpoint using its existing local login | Requires a valid profile-scoped token. Custom relays and API credentials are not reported as Claude subscription usage. No browser cookie extraction or independent token refresh. |
 | Kimi Code | Kimi usage endpoint with its configured Kimi account | Displays reported rolling, weekly, and monthly windows; custom endpoints are not sent credentials by the quota reader. |
 | GLM Coding Plan | Z.ai's quota endpoint using the configured Coding Plan key | Reads the plan's reported token and tool-call allowances. |
+| BigModel Coding Plan | No compatible quota endpoint | Shows an unsupported status with a link to the plan page. |
 | OpenCode | OpenCode Go usage endpoint using its existing Go/Zen credential | Reports Go quotas explicitly. This is not a combined quota for every downstream model provider. |
 | Antigravity | Version-gated standalone CLI usage report, when available | Older standalone CLIs and ACP-only installations cannot expose this report safely. |
 | Grok / MiMo | No verified account-quota reader | Clear unavailable state and account link; session token counts are not substituted for subscription limits. |

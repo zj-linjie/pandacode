@@ -23,7 +23,7 @@ GitHub Copilot CLI and Muse Code. Agents without a supported route below show
 their installed version and **Manual update**; PandaCode does not check a release
 feed for them.
 
-Claude Code, GLM Coding Plan, and MiMo can use the same Claude installation. Update
+Claude Code, GLM Coding Plan, BigModel Coding Plan, and MiMo can use the same Claude installation. Update
 that installation once. A relay configured to use a separate or pinned executable
 still needs its own installation checked.
 

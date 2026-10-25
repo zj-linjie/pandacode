@@ -1,8 +1,10 @@
 # PandaCode
 
+> This is a fork of [PandaCode](https://github.com/aicodeking/pandacode).
+
 A small, native desktop workspace for coding agents. PandaCode runs the coding
 CLIs you already use — **Claude Code, Codex, Kimi Code, OpenCode, GLM Coding
-Plan and Xiaomi MiMo** (through Claude Code), **GitHub Copilot CLI, Antigravity,
+Plan, Zhipu BigModel and Xiaomi MiMo** (through Claude Code), **GitHub Copilot CLI, Antigravity,
 xAI's Grok Build, DeepSeek, Command Code, Cline, Kilo Code and Devin CLI** (through ACP), **Pi** and its
 fork **omp** (through Pi's RPC mode), and Meta's **Muse Code** (through its MSP
 protocol) — side by side, with your projects, Git, a
@@ -125,7 +127,7 @@ Discord, WhatsApp or a browser too.
 - **Your code stays on your machine.** Projects, conversations and settings are
   stored locally in SQLite. Prompts go only to the coding CLI or service you
   pick, under that provider's own terms.
-- **It only talks to services you choose.** Provider keys (GLM, MiMo, DeepSeek, Command Code, cloud
+- **It only talks to services you choose.** Provider keys (GLM, BigModel, MiMo, DeepSeek, Command Code, cloud
   sandboxes, bot channels, connection secrets) are sent only to that provider.
   On macOS they live in `secrets.json` in PandaCode's app data folder, readable
   only by your user (0600), never the Keychain, so updates never ask for your

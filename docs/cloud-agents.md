@@ -17,7 +17,7 @@ catches up when it comes back.
    IDs stay `provider:native`, so the VM panel and `pandacode_vm_*` tools see it too.
 2. **Runtime.** `cloud_agents::setup::ensure_runtime` installs what the harness needs
    (git, Node when needed, the harness CLI) idempotently, with a version marker in
-   `~/.pandacode/runtime/<harness>`. Supported harnesses: `claude`, `glm`, `mimo`
+   `~/.pandacode/runtime/<harness>`. Supported harnesses: `claude`, `glm`, `bigmodel`, `mimo`
    (Claude Code relays), `codex`, `opencode`. Others refuse with a clear message.
 3. **Credentials.** `cloud_agents::credentials::push` copies the local logins the harness
    needs (files written 0600, never logged, re-pushed before every run so the remote copy

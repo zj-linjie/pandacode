@@ -71,7 +71,7 @@ Settings → Providers → Connections adds named setups of one harness, such as
 `Claude Work` and `Claude Personal`, or two Pi profiles. Each connection has a
 name, an optional executable, extra launch arguments (one per line; at most 32,
 each under 1024 characters, no NUL), environment variables and, for harnesses
-that read one, a config folder: `CLAUDE_CONFIG_DIR` (Claude Code, GLM, MiMo),
+that read one, a config folder: `CLAUDE_CONFIG_DIR` (Claude Code, GLM, BigModel, MiMo),
 `CODEX_HOME` (Codex), `PI_CODING_AGENT_DIR` (Pi) or `OPENCODE_CONFIG_DIR`
 (OpenCode). Other harnesses take their folder variable under Environment.
 
@@ -479,6 +479,38 @@ Verified interfaces (2026-09-16): [OpenCode ACP](https://opencode.ai/v2/docs/cli
 [Claude environment precedence](https://code.claude.com/docs/en/env-vars#precedence),
 [official Google ACP registry entry](https://raw.githubusercontent.com/agentclientprotocol/registry/refs/heads/main/antigravity-acp/agent.json),
 and [Antigravity authentication](https://antigravity.google/docs/ide/extensions).
+
+## BigModel Coding Plan
+
+Zhipu's BigModel Coding Plan reaches PandaCode the same way GLM does: through the
+installed Claude Code, pointed at Zhipu's Anthropic-compatible endpoint
+`https://open.bigmodel.cn/api/anthropic` with a BigModel Coding Plan key
+(documented at https://docs.bigmodel.cn/cn/coding-plan; Coding Plan keys are
+separate from standard API keys). It is its own provider, so it runs beside the
+Z.AI GLM plan with an independent key, usage and cloud credentials; the key lives
+in the platform secure store under its own account (`bigmodel-coding-plan`) or
+comes from `BIGMODEL_API_KEY`, and a locked keyring never disables the
+environment fallback.
+
+The launch mirrors GLM's isolation: `--setting-sources ""` plus a process-local
+`--settings` block that fixes `ANTHROPIC_BASE_URL`, blanks
+`ANTHROPIC_API_KEY`/OAuth/cloud variables, maps the Sonnet/Opus slots to
+`glm-5.3` and the Haiku slot to `glm-5.3-flash`, and enables
+`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`. The key travels only in
+`ANTHROPIC_AUTH_TOKEN`, never in argv or a settings file; slash-command discovery
+and the harness console use the same flags. Explicit `--model` choices override
+the default environment value.
+
+The picker lists the four documented plan IDs — `glm-5.3`, `glm-5.3-flash` and
+their `[1m]` 1M-context variants. The unsuffixed pair is documented on BigModel's
+"how to switch models" page and the `[1m]` variants in its Claude Code
+manual-configuration example; `glm-5-turbo` appears on neither page (the plan
+overview mentions it only as legacy auto-routing), so it is not listed and custom
+IDs remain available. Zhipu publishes no per-plan entitlements through Claude's
+model catalog, so no context or effort metadata is claimed. Agent usage degrades
+honestly: no compatible quota endpoint exists, so the BigModel card shows an
+unsupported status linking to the plan page
+(https://bigmodel.cn/apikey/coding-plan-per; teams: …/coding-plan-team).
 
 ## MiMo Token Plan
 
