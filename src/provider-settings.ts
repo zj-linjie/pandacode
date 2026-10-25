@@ -1,5 +1,6 @@
 import './provider-settings.css';
 import { call, preview } from './bridge';
+import { t } from './i18n.ts';
 import { escape, icon } from './dom';
 import { providerLogo } from './provider-logos';
 import { infoMark } from './tooltip';
@@ -8,7 +9,7 @@ import type { ProviderId } from './types';
 
 type ClaudeMode = 'inherit' | 'subscription';
 interface ClaudeStatus { mode: ClaudeMode; source: string; environmentVariables: string[]; endpoint: string | null; savedLogin: 'signedIn' | 'notSignedIn' | 'otherCredentials' | 'unknown'; conflict: boolean; }
-const howProvidersWork = 'Nothing here is applied to every agent. GLM Coding Plan, BigModel Coding Plan and MiMo Token Plan run through your installed Claude Code, and you pick them in the model selector. Named connections are extra setups of one agent. PandaCode needs no provider of its own: titles come from the agent running the task, project checks run your own test command, and Jev uses its own keys. Codex, when installed, also lists integrations and imports Codex conversations.';
+const howProvidersWork = t('Nothing here is applied to every agent. GLM Coding Plan, BigModel Coding Plan and MiMo Token Plan run through your installed Claude Code, and you pick them in the model selector. Named connections are extra setups of one agent. PandaCode needs no provider of its own: titles come from the agent running the task, project checks run your own test command, and Jev uses its own keys. Codex, when installed, also lists integrations and imports Codex conversations.');
 const claudeHelp = 'Use current environment preserves your existing Claude setup. Prefer saved Claude login removes inherited API credentials, endpoints, and model routing overrides from new Claude processes in PandaCode. Claude settings, credential helpers, profiles, and organization policies can still affect authentication. Check /status in Claude to confirm.';
 
 interface Configuration {
@@ -33,7 +34,7 @@ interface Configuration {
 /** Key-based connections share one form/status/remove pattern; the native side owns the secret. */
 const keyed = {
   glm: { env: 'ZAI_API_KEY', save: 'provider_save_glm_key', remove: 'provider_remove_glm_key', saved: 'GLM key saved. Choose GLM Coding Plan in the model selector.', savedFlag: 'glmKeySaved', envFlag: 'glmKeyFromEnvironment' },
-  bigmodel: { env: 'BIGMODEL_API_KEY', save: 'provider_save_bigmodel_key', remove: 'provider_remove_bigmodel_key', saved: 'BigModel key saved. Choose BigModel Coding Plan in the model selector.', savedFlag: 'bigmodelKeySaved', envFlag: 'bigmodelKeyFromEnvironment' },
+  bigmodel: { env: 'BIGMODEL_API_KEY', save: 'provider_save_bigmodel_key', remove: 'provider_remove_bigmodel_key', saved: t('BigModel key saved. Choose BigModel Coding Plan in the model selector.'), savedFlag: 'bigmodelKeySaved', envFlag: 'bigmodelKeyFromEnvironment' },
   mimo: { env: 'MIMO_API_KEY', save: 'provider_save_mimo_key', remove: 'provider_remove_mimo_key', saved: 'MiMo key saved. Choose MiMo Token Plan in the model selector.', savedFlag: 'mimoKeySaved', envFlag: 'mimoKeyFromEnvironment' },
   deepseek: { env: 'DEEPSEEK_API_KEY', save: 'provider_save_deepseek_key', remove: 'provider_remove_deepseek_key', saved: 'DeepSeek key saved. Choose DeepSeek in the model selector.', savedFlag: 'deepseekKeySaved', envFlag: 'deepseekKeyFromEnvironment' },
   commandcode: { env: 'COMMAND_CODE_API_KEY', save: 'provider_save_commandcode_key', remove: 'provider_remove_commandcode_key', saved: 'Command Code key saved. Choose Command Code in the model selector.', savedFlag: 'commandcodeKeySaved', envFlag: 'commandcodeKeyFromEnvironment' },
@@ -63,10 +64,10 @@ export function mountProviderSettings(host: HTMLElement, saved: () => Promise<un
       ${keyForm('glm', 'Z.ai API key')}
       <a href="https://docs.z.ai/devpack/tool/claude" target="_blank" rel="noopener noreferrer">Coding Plan setup ${icon('forward')}</a>
     </section>
-    <section class="connection-card"><h3>${providerLogo('bigmodel')}BigModel Coding Plan<small>Zhipu · via Claude Code</small></h3>
-      <p>Use a Zhipu BigModel Coding Plan key with your installed Claude Code. Your regular Claude account stays separate.</p>
-      ${keyForm('bigmodel', 'BigModel API key')}
-      <a href="https://docs.bigmodel.cn/cn/coding-plan/quick-start" target="_blank" rel="noopener noreferrer">Coding Plan setup ${icon('forward')}</a>
+    <section class="connection-card"><h3>${providerLogo('bigmodel')}BigModel Coding Plan<small>${t('Zhipu · via Claude Code')}</small></h3>
+      <p>${t('Use a Zhipu BigModel Coding Plan key with your installed Claude Code. Your regular Claude account stays separate.')}</p>
+      ${keyForm('bigmodel', t('BigModel API key'))}
+      <a href="https://docs.bigmodel.cn/cn/coding-plan/quick-start" target="_blank" rel="noopener noreferrer">${t('Coding Plan setup')} ${icon('forward')}</a>
     </section>
     <section class="connection-card"><h3>${providerLogo('mimo')}MiMo Token Plan<small>Xiaomi, via Claude Code</small></h3>
       <p>Use your Token Plan (or pay-as-you-go) key with your installed Claude Code. Pick the cluster shown on your Token Plan page; keys look like <code>tp-…</code>, <code>ttp-…</code> or <code>sk-…</code>.</p>
