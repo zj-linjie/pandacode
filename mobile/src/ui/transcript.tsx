@@ -12,6 +12,7 @@ import { attachments, duration, turnRows, type TurnRow } from '../store/turns.ts
 import { Icon } from './Icon.tsx';
 import { Markdown } from './Markdown.tsx';
 import { showActions } from './Menu.tsx';
+import { tNow, useT } from './language.ts';
 import { mono, useColors } from './theme.ts';
 
 // Same blocks the desktop folds behind a user message (CONTEXT_BOUNDARY in src/main.ts).
@@ -26,11 +27,12 @@ const attachmentIcon = (kind: string) =>
 const clock = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
 function parseTool(content: string): ToolActivity {
+  const t = tNow();
   try {
-    const t = JSON.parse(content);
-    return { id: '', name: String(t.name ?? t.title ?? 'Tool'), status: t.status === 'failed' ? 'failed' : t.status === 'running' ? 'running' : 'completed', input: String(t.input ?? ''), output: String(t.output ?? '') };
+    const parsed = JSON.parse(content);
+    return { id: '', name: String(parsed.name ?? parsed.title ?? t('Tool')), status: parsed.status === 'failed' ? 'failed' : parsed.status === 'running' ? 'running' : 'completed', input: String(parsed.input ?? ''), output: String(parsed.output ?? '') };
   } catch {
-    return { id: '', name: 'Tool', status: 'completed', input: '', output: content };
+    return { id: '', name: t('Tool'), status: 'completed', input: '', output: content };
   }
 }
 
@@ -78,9 +80,10 @@ function copy(text: string) {
 }
 
 function Meta({ text, at, align }: { text: string; at: number; align: 'left' | 'right' }) {
+  const t = useT();
   const colors = useColors();
   const copyButton = (
-    <Pressable onPress={() => copy(text)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Copy">
+    <Pressable onPress={() => copy(text)} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('Copy')}>
       <Icon ios="doc.on.doc" android="content_copy" size={13} color={colors.tertiary} />
     </Pressable>
   );
@@ -89,6 +92,7 @@ function Meta({ text, at, align }: { text: string; at: number; align: 'left' | '
 }
 
 function UserBubble({ message }: { message: Message }) {
+  const t = useT();
   const colors = useColors();
   const [showContext, setShowContext] = useState(false);
   const content = message.content;
@@ -115,14 +119,14 @@ function UserBubble({ message }: { message: Message }) {
         )}
         {cut >= 0 && (
           <Pressable onPress={() => setShowContext(s => !s)} accessibilityRole="button">
-            <Text style={[styles.context, { color: colors.secondary }]}>{showContext ? content.slice(cut + 2) : 'Attached context'}</Text>
+            <Text style={[styles.context, { color: colors.secondary }]}>{showContext ? content.slice(cut + 2) : t('Attached context')}</Text>
           </Pressable>
         )}
       </View>
       {steeredAt != null && (
         <View style={[styles.meta, styles.metaRight]}>
           <Icon ios="arrow.uturn.right" android="alt_route" size={11} color={colors.secondary} />
-          <Text style={[styles.time, { color: colors.secondary }]}>Steer · {clock(steeredAt)}</Text>
+          <Text style={[styles.time, { color: colors.secondary }]}>{t`Steer · ${clock(steeredAt)}`}</Text>
         </View>
       )}
       <Meta text={prompt} at={message.createdAt} align="right" />
@@ -131,10 +135,11 @@ function UserBubble({ message }: { message: Message }) {
 }
 
 function WorkRow({ steps, durationMs }: { steps: Message[]; durationMs: number | null }) {
+  const t = useT();
   const colors = useColors();
   const [open, setOpen] = useState(false);
   const tools = steps.filter(s => s.role === 'tool').length;
-  const label = durationMs != null ? `Worked for ${duration(durationMs)}` : `${tools} step${tools === 1 ? '' : 's'}`;
+  const label = durationMs != null ? t`Worked for ${duration(durationMs)}` : tools === 1 ? t('1 step') : t`${tools} steps`;
   return (
     <View style={styles.work}>
       <Pressable onPress={() => setOpen(o => !o)} disabled={!steps.length} style={styles.workHead} accessibilityRole="button" accessibilityState={{ expanded: open }} hitSlop={6}>
@@ -168,6 +173,7 @@ const Row = memo(function Row({ row }: { row: TurnRow }) {
 
 /** Messages waiting in the outbox for this task. */
 function Pending({ deviceId, sessionId }: { deviceId: string; sessionId: string }) {
+  const t = useT();
   const colors = useColors();
   const outbox = useLocal(s => s.outbox);
   const entries = useMemo(() => outbox.filter(e => e.deviceId === deviceId && e.sessionId === sessionId), [outbox, deviceId, sessionId]);
@@ -175,19 +181,19 @@ function Pending({ deviceId, sessionId }: { deviceId: string; sessionId: string 
   return (
     <>
       {entries.map(entry => {
-        const menu = () => showActions(entry.error ?? 'This message sends when the computer is back.', [
-          { label: 'Send now', ios: 'arrow.up.circle', android: 'send', onPress: () => retryOutbox(entry.id) },
-          { label: 'Copy', ios: 'doc.on.doc', android: 'content_copy', onPress: () => copy(entry.text) },
-          { label: 'Delete', ios: 'trash', android: 'delete', destructive: true, onPress: () => removeOutbox(entry.id) },
+        const menu = () => showActions(entry.error ?? t('This message sends when the computer is back.'), [
+          { label: t('Send now'), ios: 'arrow.up.circle', android: 'send', onPress: () => retryOutbox(entry.id) },
+          { label: t('Copy'), ios: 'doc.on.doc', android: 'content_copy', onPress: () => copy(entry.text) },
+          { label: t('Delete'), ios: 'trash', android: 'delete', destructive: true, onPress: () => removeOutbox(entry.id) },
         ]);
         return (
-          <Pressable key={entry.id} onPress={menu} onLongPress={menu} style={styles.userTurn} accessibilityRole="button" accessibilityHint="Retry or delete">
+          <Pressable key={entry.id} onPress={menu} onLongPress={menu} style={styles.userTurn} accessibilityRole="button" accessibilityHint={t('Retry or delete')}>
             <View style={[styles.bubble, styles.pending, { backgroundColor: colors.bubble, borderColor: entry.error ? colors.red : colors.separator }]}>
               <Text style={[styles.userText, { color: colors.text }]}>{entry.text}</Text>
             </View>
             <View style={[styles.meta, styles.metaRight]}>
               <Icon ios={entry.error ? 'exclamationmark.circle' : 'clock.arrow.circlepath'} android={entry.error ? 'error' : 'schedule_send'} size={12} color={entry.error ? colors.red : colors.orange} />
-              <Text style={[styles.time, { color: entry.error ? colors.red : colors.orange }]} numberOfLines={1}>{entry.error ? 'Not sent · tap to retry' : 'Sends on reconnect'}</Text>
+              <Text style={[styles.time, { color: entry.error ? colors.red : colors.orange }]} numberOfLines={1}>{entry.error ? t('Not sent · tap to retry') : t('Sends on reconnect')}</Text>
             </View>
           </Pressable>
         );
@@ -198,6 +204,7 @@ function Pending({ deviceId, sessionId }: { deviceId: string; sessionId: string 
 
 /** The in-flight run: the turn's tools folded, streamed text, and a compact Working row. */
 const LiveRun = memo(function LiveRun({ deviceId, sessionId }: { deviceId: string; sessionId: string }) {
+  const t = useT();
   const colors = useColors();
   const live = useLive(deviceId, sessionId);
   const [open, setOpen] = useState(false);
@@ -213,12 +220,13 @@ const LiveRun = memo(function LiveRun({ deviceId, sessionId }: { deviceId: strin
   const earlier = live.items.filter((item, i) => i !== lastText);
   const running = live.items.findLast(i => i.kind === 'tool' && i.tool.status === 'running');
   const current = running?.kind === 'tool' ? `${running.tool.name}  ${running.tool.input.split('\n', 1)[0].slice(0, 60)}` : live.activity;
+  const soFar = earlier.filter(i => i.kind === 'tool').length;
   return (
     <View>
       {earlier.length > 0 && (
         <View style={styles.work}>
           <Pressable onPress={() => setOpen(o => !o)} style={styles.workHead} accessibilityRole="button" accessibilityState={{ expanded: open }} hitSlop={6}>
-            <Text style={[styles.workText, { color: colors.secondary }]}>{plural(earlier.filter(i => i.kind === 'tool').length, 'step')} so far</Text>
+            <Text style={[styles.workText, { color: colors.secondary }]}>{soFar === 1 ? t('1 step so far') : t`${soFar} steps so far`}</Text>
             <Icon ios={open ? 'chevron.down' : 'chevron.right'} android={open ? 'expand_more' : 'chevron_right'} size={11} color={colors.secondary} />
           </Pressable>
           {open && (
@@ -234,7 +242,7 @@ const LiveRun = memo(function LiveRun({ deviceId, sessionId }: { deviceId: strin
       {live.status === 'running' && (
         <View style={styles.activity}>
           <ActivityIndicator size="small" style={styles.small} />
-          <Text style={[styles.workText, { color: colors.secondary }]}>Working…</Text>
+          <Text style={[styles.workText, { color: colors.secondary }]}>{t('Working…')}</Text>
           {!!current && current !== 'Working…' && <Text style={[styles.current, { color: colors.tertiary }]} numberOfLines={1}>{current}</Text>}
         </View>
       )}
@@ -244,23 +252,24 @@ const LiveRun = memo(function LiveRun({ deviceId, sessionId }: { deviceId: strin
 
 /** The message copy: a spinner while it runs, its error with Retry when it failed. */
 function History({ deviceId, sessionId, empty }: { deviceId: string; sessionId: string; empty: boolean }) {
+  const t = useT();
   const colors = useColors();
   const history = useHistory(deviceId, sessionId);
   if (history === undefined) return null;
   if (history === null) {
     return empty ? (
-      <View style={styles.activity} accessibilityLabel="Loading messages">
+      <View style={styles.activity} accessibilityLabel={t('Loading messages')}>
         <ActivityIndicator size="small" style={styles.small} />
-        <Text style={[styles.workText, { color: colors.secondary }]}>Loading messages…</Text>
+        <Text style={[styles.workText, { color: colors.secondary }]}>{t('Loading messages…')}</Text>
       </View>
     ) : null;
   }
   return (
     <View style={styles.failed}>
       <Icon ios="exclamationmark.circle" android="error" size={14} color={colors.red} />
-      <Text style={[styles.failedText, { color: colors.red }]} numberOfLines={3}>{`Couldn't load ${empty ? 'this task' : 'the newest messages'}: ${history}`}</Text>
-      <Pressable onPress={() => connect.loadMessages(deviceId, sessionId).catch(() => undefined)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Retry loading messages">
-        <Text style={[styles.retry, { color: colors.tint }]}>Retry</Text>
+      <Text style={[styles.failedText, { color: colors.red }]} numberOfLines={3}>{t`Couldn't load ${empty ? t('this task') : t('the newest messages')}: ${history}`}</Text>
+      <Pressable onPress={() => connect.loadMessages(deviceId, sessionId).catch(() => undefined)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('Retry loading messages')}>
+        <Text style={[styles.retry, { color: colors.tint }]}>{t('Retry')}</Text>
       </Pressable>
     </View>
   );
@@ -335,5 +344,3 @@ const styles = StyleSheet.create({
   current: { flex: 1, fontSize: 12, fontFamily: mono },
   small: { transform: [{ scale: 0.8 }] },
 });
-
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;

@@ -8,31 +8,35 @@ import { connect } from '../../../connect/client.ts';
 import { useStatus } from '../../../store/index.ts';
 import { APPEARANCES, setAppearance, useAppearance } from '../../../ui/appearance.ts';
 import { useBackdrop } from '../../../ui/Backdrop.tsx';
+import { setLanguage, useLanguage, useT } from '../../../ui/language.ts';
+import { LANGUAGES } from '../../../i18n/core.ts';
 import { WallpaperSettings } from '../../../ui/WallpaperSettings.tsx';
 
 const SOURCE = 'https://github.com/aicodeking/pandacode';
 
 export default function Settings() {
   const colors = useBackdrop();
+  const t = useT();
   const status = useStatus();
   const insets = useSafeAreaInsets();
   const appearance = useAppearance(s => s.choice);
-  const signOut = () => Alert.alert('Sign out?', 'This phone stops seeing your computers until you sign in again.', [
-    { text: 'Cancel', style: 'cancel' },
-    { text: 'Sign out', style: 'destructive', onPress: () => void connect.signOut() },
+  const language = useLanguage(s => s.choice);
+  const signOut = () => Alert.alert(t('Sign out?'), t('This phone stops seeing your computers until you sign in again.'), [
+    { text: t('Cancel'), style: 'cancel' },
+    { text: t('Sign out'), style: 'destructive', onPress: () => void connect.signOut() },
   ]);
   return (
     <ScrollView style={{ backgroundColor: colors.grouped }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.page, { paddingLeft: 16 + insets.left, paddingRight: 16 + insets.right }]}>
-      <Section title="Account">
+      <Section title={t('Account')}>
         <View style={styles.row}>
           {!!status.account?.avatarUrl && <Image source={status.account.avatarUrl} style={styles.avatar} />}
           <View style={{ flex: 1 }}>
             <Text style={[styles.value, { color: colors.text }]}>{status.account?.login ?? '—'}</Text>
-            <Text style={[styles.small, { color: status.error ? colors.red : colors.secondary }]}>{status.error ?? (status.connected ? 'Connected' : 'Connecting…')}</Text>
+            <Text style={[styles.small, { color: status.error ? colors.red : colors.secondary }]}>{status.error ?? (status.connected ? t('Connected') : t('Connecting…'))}</Text>
           </View>
         </View>
       </Section>
-      <Section title="Appearance" footer="Applies to this app only. System follows the phone's light or dark setting.">
+      <Section title={t('Appearance')} footer={t("Applies to this app only. System follows the phone's light or dark setting.")}>
         <View style={styles.chips} accessibilityRole="radiogroup">
           {APPEARANCES.map(a => {
             const selected = appearance === a.id;
@@ -45,15 +49,31 @@ export default function Settings() {
           })}
         </View>
       </Section>
-      <Section title="Wallpaper" footer="The desktop's daily scenes, in step with your computer: each day has a morning, afternoon and night scene. Tap a scene to keep it.">
+      <Section title={t('Language')} footer={t('Follows the system language until you pick one here.')}>
+        <View accessibilityRole="radiogroup">
+          <Pressable onPress={() => setLanguage('system')} accessibilityRole="radio" accessibilityState={{ selected: language === 'system' }}
+            style={styles.languageRow}>
+            <Text style={[styles.value, { color: colors.text }]}>{t('System default')}</Text>
+            {language === 'system' && <Text style={{ color: colors.tint }}>✓</Text>}
+          </Pressable>
+          {LANGUAGES.map(l => (
+            <Pressable key={l.id} onPress={() => setLanguage(l.id)} accessibilityRole="radio" accessibilityState={{ selected: language === l.id }}
+              style={styles.languageRow}>
+              <Text style={[styles.value, { color: colors.text }]}>{l.native}</Text>
+              {language === l.id && <Text style={{ color: colors.tint }}>✓</Text>}
+            </Pressable>
+          ))}
+        </View>
+      </Section>
+      <Section title={t('Wallpaper')} footer={t("The desktop's daily scenes, in step with your computer: each day has a morning, afternoon and night scene. Tap a scene to keep it.")}>
         <WallpaperSettings />
       </Section>
       <Section>
-        <Pressable onPress={signOut} accessibilityRole="button"><Text style={[styles.value, { color: colors.red }]}>Sign out</Text></Pressable>
+        <Pressable onPress={signOut} accessibilityRole="button"><Text style={[styles.value, { color: colors.red }]}>{t('Sign out')}</Text></Pressable>
       </Section>
-      <Section title="About" footer="PandaCode is open source. This app has no telemetry; it talks only to the PandaCode Connect relay and GitHub sign-in.">
+      <Section title={t('About')} footer={t('PandaCode is open source. This app has no telemetry; it talks only to the PandaCode Connect relay and GitHub sign-in.')}>
         <Text style={[styles.value, { color: colors.text }]}>PandaCode {Constants.expoConfig?.version ?? ''}</Text>
-        <Pressable onPress={() => void WebBrowser.openBrowserAsync(SOURCE)} accessibilityRole="link"><Text style={[styles.value, { color: colors.tint }]}>Source code</Text></Pressable>
+        <Pressable onPress={() => void WebBrowser.openBrowserAsync(SOURCE)} accessibilityRole="link"><Text style={[styles.value, { color: colors.tint }]}>{t('Source code')}</Text></Pressable>
       </Section>
     </ScrollView>
   );
@@ -81,6 +101,7 @@ const styles = StyleSheet.create({
   small: { fontSize: 13, lineHeight: 18 },
   footer: { marginHorizontal: 14 },
   chips: { flexDirection: 'row', gap: 8 },
+  languageRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
   chip: { flex: 1, alignItems: 'center', borderRadius: 16, paddingVertical: 8 },
   chipText: { fontSize: 15, fontWeight: '500' },
 });

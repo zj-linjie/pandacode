@@ -15,9 +15,9 @@ import { NewThread } from '../../../ui/NewThread.tsx';
 import { useSplit } from '../../../ui/split.tsx';
 import { useBackdrop } from '../../../ui/Backdrop.tsx';
 import { useColors } from '../../../ui/theme.ts';
+import { useT } from '../../../ui/language.ts';
 import { useInbox } from '../../../ui/useInbox.ts';
 
-const TITLES: Record<Section, string> = { needs: 'Needs you', working: 'Working', recent: 'Recent', unsent: 'Unsent', snoozed: 'Snoozed', settled: 'Settled' };
 const FOLDED: Section[] = ['snoozed', 'settled'];
 
 type Item = { type: 'header'; section: Section; count: number; open?: boolean } | { type: 'row'; section: Section; row: Row; last: boolean };
@@ -29,6 +29,7 @@ export default function InboxRoute() {
 
 function Inbox() {
   const colors = useColors();
+  const t = useT();
   const backdrop = useBackdrop();
   const { connected } = useStatus();
   const insets = useSafeAreaInsets();
@@ -36,6 +37,7 @@ function Inbox() {
   const [open, setOpen] = useState<Partial<Record<Section, boolean>>>({});
   const [refreshing, setRefreshing] = useState(false);
   const online = hosts.filter(h => h.online);
+  const titles: Record<Section, string> = { needs: t('Needs you'), working: t('Working'), recent: t('Recent'), unsent: t('Unsent'), snoozed: t('Snoozed'), settled: t('Settled') };
   // The client keeps lists fresh (presence, foreground, run ends, a timer); focus also reports errors.
   useFocusEffect(useCallback(() => { void load(); }, [load]));
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
@@ -54,7 +56,7 @@ function Inbox() {
 
   const render = ({ item }: { item: Item }) => {
     if (item.type === 'row') return <InboxRow row={item.row} snoozed={item.section === 'snoozed'} last={item.last} minute={minute} />;
-    const title = item.open === undefined ? TITLES[item.section] : `${TITLES[item.section]} (${item.count})`;
+    const title = item.open === undefined ? titles[item.section] : `${titles[item.section]} (${item.count})`;
     if (item.open === undefined) return <Text style={[styles.section, { color: colors.secondary }]} accessibilityRole="header">{title}</Text>;
     return (
       <Pressable onPress={() => setOpen(o => ({ ...o, [item.section]: !o[item.section] }))} style={styles.foldHeader} accessibilityRole="button" accessibilityState={{ expanded: item.open }}>
@@ -65,14 +67,14 @@ function Inbox() {
   };
 
   const offline = hosts.filter(h => !h.online).map(h => h.name);
-  const problems = [...Object.values(errors), ...(connected || DEMO ? [] : ['Connecting to PandaCode Connect…'])];
-  const empty = !hosts.length ? 'Turn on remote access on a computer signed in to the same GitHub account to see its tasks here.'
-    : !online.length ? `${offline.join(', ')} ${offline.length > 1 ? 'are' : 'is'} offline.`
-    : 'No tasks yet. Start one with New task.';
+  const problems = [...Object.values(errors), ...(connected || DEMO ? [] : [t('Connecting to PandaCode Connect…')])];
+  const empty = !hosts.length ? t('Turn on remote access on a computer signed in to the same GitHub account to see its tasks here.')
+    : !online.length ? (offline.length > 1 ? t`${offline.join(', ')} are offline.` : t`${offline.join(', ')} is offline.`)
+    : t('No tasks yet. Start one with New task.');
 
   const menu: MenuItem[] = [
-    { label: 'New task', ios: 'square.and.pencil', android: 'edit_square', onPress: () => router.push('/new-task') },
-    { label: 'Refresh', ios: 'arrow.clockwise', android: 'refresh', onPress: () => void refresh() },
+    { label: t('New task'), ios: 'square.and.pencil', android: 'edit_square', onPress: () => router.push('/new-task') },
+    { label: t('Refresh'), ios: 'arrow.clockwise', android: 'refresh', onPress: () => void refresh() },
   ];
 
   return (
@@ -81,7 +83,7 @@ function Inbox() {
         title: '',
         headerLeft: Platform.OS === 'ios' ? undefined : () => <Brand />,
         // iOS: a native bar button item (below), which the iPhone Duo moves into its rail.
-        headerRight: Platform.OS === 'ios' ? undefined : () => <Menu ios="ellipsis" android="more_vert" color={colors.text} items={menu} label="More">{icon => <View style={styles.more}>{icon}</View>}</Menu>,
+        headerRight: Platform.OS === 'ios' ? undefined : () => <Menu ios="ellipsis" android="more_vert" color={colors.text} items={menu} label={t('More')}>{icon => <View style={styles.more}>{icon}</View>}</Menu>,
       }} />
       {Platform.OS === 'ios' && (
         <Stack.Toolbar placement="left">
@@ -90,7 +92,7 @@ function Inbox() {
       )}
       {Platform.OS === 'ios' && (
         <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button icon="square.and.pencil" accessibilityLabel="New task" onPress={() => router.push('/new-task')} />
+          <Stack.Toolbar.Button icon="square.and.pencil" accessibilityLabel={t('New task')} onPress={() => router.push('/new-task')} />
         </Stack.Toolbar>
       )}
       <FlatList

@@ -12,12 +12,14 @@ import { useStatus } from '../store/index.ts';
 import { Glass } from '../ui/Glass.tsx';
 import { Button } from '../ui/requests.tsx';
 import { mono, useColors } from '../ui/theme.ts';
+import { useT } from '../ui/language.ts';
 import { configProblem } from '../connect/config.ts';
 
 const icon = require('../../assets/images/icon.png');
 
 export default function SignIn() {
   const colors = useColors();
+  const t = useT();
   const status = useStatus();
   const [code, setCode] = useState<SignInCode | null>(null);
   const [error, setError] = useState('');
@@ -55,33 +57,33 @@ export default function SignIn() {
       <View style={styles.top}>
         <Image source={icon} style={styles.icon} accessibilityIgnoresInvertColors />
         <Text style={[styles.title, { color: colors.text }]}>PandaCode</Text>
-        <Text style={[styles.lead, { color: colors.secondary }]}>See and steer the tasks running on your computers. Tasks never run on this phone.</Text>
+        <Text style={[styles.lead, { color: colors.secondary }]}>{t('See and steer the tasks running on your computers. Tasks never run on this phone.')}</Text>
       </View>
       {!status.configured ? (
         <Glass style={styles.card}>
-          <Text style={[styles.body, { color: colors.text }]}>PandaCode Connect is not configured in this build.</Text>
-          <Text style={[styles.small, { color: colors.secondary }]}>{configProblem} Put PANDACODE_RELAY_URL and PANDACODE_GITHUB_CLIENT_ID in mobile/.env (or the shell), then restart Metro with npx expo start --clear.</Text>
+          <Text style={[styles.body, { color: colors.text }]}>{t('PandaCode Connect is not configured in this build.')}</Text>
+          <Text style={[styles.small, { color: colors.secondary }]}>{configProblem} {t('Put PANDACODE_RELAY_URL and PANDACODE_GITHUB_CLIENT_ID in mobile/.env (or the shell), then restart Metro with npx expo start --clear.')}</Text>
         </Glass>
       ) : code ? (
         <Glass style={styles.card}>
-          <Text style={[styles.small, { color: colors.secondary }]}>Enter this code on GitHub</Text>
-          <Pressable onPress={copy} accessibilityRole="button" accessibilityLabel={`Code ${code.userCode}. Copy`}>
+          <Text style={[styles.small, { color: colors.secondary }]}>{t('Enter this code on GitHub')}</Text>
+          <Pressable onPress={copy} accessibilityRole="button" accessibilityLabel={t`Code ${code.userCode}. Copy`}>
             <Text selectable style={[styles.code, { color: colors.text }]}>{code.userCode}</Text>
           </Pressable>
           <View style={styles.actions}>
-            <Button label={copied ? 'Copied' : 'Copy code'} onPress={copy} />
-            <Button label="Open GitHub" kind="primary" onPress={() => { void copy(); void WebBrowser.openBrowserAsync(code.verificationUri); }} />
+            <Button label={copied ? t('Copied') : t('Copy code')} onPress={copy} />
+            <Button label={t('Open GitHub')} kind="primary" onPress={() => { void copy(); void WebBrowser.openBrowserAsync(code.verificationUri); }} />
           </View>
           <View style={styles.waiting}>
             <ActivityIndicator />
-            <Text style={[styles.small, { color: colors.secondary }]}>Waiting for GitHub…</Text>
+            <Text style={[styles.small, { color: colors.secondary }]}>{t('Waiting for GitHub…')}</Text>
           </View>
-          <Button label="Cancel" onPress={cancel} />
+          <Button label={t('Cancel')} onPress={cancel} />
         </Glass>
       ) : (
         <View style={styles.bottom}>
           {!!(error || status.error) && <Text style={[styles.small, { color: colors.red, textAlign: 'center' }]}>{error || status.error}</Text>}
-          {starting ? <ActivityIndicator /> : <Button label="Sign in with GitHub" kind="primary" onPress={start} />}
+          {starting ? <ActivityIndicator /> : <Button label={t('Sign in with GitHub')} kind="primary" onPress={start} />}
         </View>
       )}
     </SafeAreaView>

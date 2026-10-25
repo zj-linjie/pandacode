@@ -11,6 +11,7 @@ import { Material, useWallpaperShown } from './Backdrop.tsx';
 import { Glass } from './Glass.tsx';
 import { Icon } from './Icon.tsx';
 import { InboxRow } from './InboxRow.tsx';
+import { useT } from './language.ts';
 import { useColors } from './theme.ts';
 import { useInbox } from './useInbox.ts';
 
@@ -24,6 +25,7 @@ export const useSidebarWidth = () => Math.max(MIN_WIDTH, Math.round(useWindowDim
 type Item = { section: Section; row: Row };
 
 export function Sidebar() {
+  const t = useT();
   const colors = useColors();
   const wallpaper = useWallpaperShown();
   const insets = useSafeAreaInsets();
@@ -39,7 +41,7 @@ export function Sidebar() {
   useEffect(() => { void load(); }, [load]);
 
   const items = useMemo(() => ORDER.flatMap(section => filterRows(inbox[section], query).map(row => ({ section, row }))), [inbox, query]);
-  const empty = query.trim() ? 'No matching threads.' : !hosts.length ? 'Turn on remote access on a computer signed in to the same GitHub account to see its tasks here.' : 'No tasks yet.';
+  const empty = query.trim() ? t('No matching threads.') : !hosts.length ? t('Turn on remote access on a computer signed in to the same GitHub account to see its tasks here.') : t('No tasks yet.');
 
   return (
     <KeyboardAvoidingView behavior="padding" style={[styles.sidebar, { width: width + insets.left, paddingLeft: insets.left, backgroundColor: wallpaper ? undefined : colors.grouped }]}>
@@ -66,8 +68,8 @@ export function Sidebar() {
       />
       <Glass style={[styles.search, { left: insets.left + 12, bottom: Math.max(insets.bottom, 12) }]} interactive>
         <Icon ios="magnifyingglass" android="search" size={16} color={colors.secondary} />
-        <TextInput value={query} onChangeText={setQuery} placeholder="Search threads" placeholderTextColor={colors.secondary as string}
-          style={[styles.searchInput, { color: colors.text }]} returnKeyType="search" autoCorrect={false} autoCapitalize="none" clearButtonMode="while-editing" accessibilityLabel="Search threads" />
+        <TextInput value={query} onChangeText={setQuery} placeholder={t('Search threads')} placeholderTextColor={colors.secondary as string}
+          style={[styles.searchInput, { color: colors.text }]} returnKeyType="search" autoCorrect={false} autoCapitalize="none" clearButtonMode="while-editing" accessibilityLabel={t('Search threads')} />
       </Glass>
     </KeyboardAvoidingView>
   );

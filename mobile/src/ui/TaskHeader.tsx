@@ -13,6 +13,7 @@ import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { connect } from '../connect/client.ts';
 import { hasGlass } from './Glass.tsx';
 import { Icon } from './Icon.tsx';
+import { tNow, useT } from './language.ts';
 import { toggleSidebar, useSidebar, useSplit } from './split.tsx';
 import { useColors } from './theme.ts';
 
@@ -28,8 +29,9 @@ function Button({ icon, label, onPress, color }: { icon: IconName; label: string
 }
 
 export function stopTask(deviceId: string, sessionId: string) {
+  const t = tNow();
   void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-  connect.stopTask(deviceId, sessionId).catch(error => Alert.alert('Could not stop', (error as Error).message));
+  connect.stopTask(deviceId, sessionId).catch(error => Alert.alert(t('Could not stop'), (error as Error).message));
 }
 
 /** In the split view New task is the Inbox tab's New thread pane. */
@@ -39,6 +41,7 @@ export function openNewThread() {
 }
 
 export function TaskHeader({ deviceId, sessionId, title, running }: { deviceId: string; sessionId: string; title: string; running: boolean }) {
+  const t = useT();
   const colors = useColors();
   const split = useSplit();
   const collapsed = useSidebar(s => s.collapsed);
@@ -50,9 +53,9 @@ export function TaskHeader({ deviceId, sessionId, title, running }: { deviceId: 
   if (Platform.OS !== 'ios') {
     return <Stack.Screen options={{ ...options, headerRight: () => (
       <View style={styles.row}>
-        <Button icon={{ ios: 'slider.horizontal.3', android: 'tune' }} label="Model and permissions" onPress={settings} />
-        <Button icon={{ ios: 'info.circle', android: 'info' }} label="Task info" onPress={info} />
-        {running && <Button icon={{ ios: 'stop.circle.fill', android: 'stop_circle' }} label="Stop" onPress={stop} color={colors.red as string} />}
+        <Button icon={{ ios: 'slider.horizontal.3', android: 'tune' }} label={t('Model and permissions')} onPress={settings} />
+        <Button icon={{ ios: 'info.circle', android: 'info' }} label={t('Task info')} onPress={info} />
+        {running && <Button icon={{ ios: 'stop.circle.fill', android: 'stop_circle' }} label={t('Stop')} onPress={stop} color={colors.red as string} />}
       </View>
     ) }} />;
   }
@@ -61,14 +64,14 @@ export function TaskHeader({ deviceId, sessionId, title, running }: { deviceId: 
       <Stack.Screen options={options} />
       {split && (
         <Stack.Toolbar placement="left">
-          <Stack.Toolbar.Button icon="sidebar.left" accessibilityLabel={collapsed ? 'Show sidebar' : 'Hide sidebar'} onPress={toggleSidebar} />
-          <Stack.Toolbar.Button icon="square.and.pencil" accessibilityLabel="New task" onPress={openNewThread} />
+          <Stack.Toolbar.Button icon="sidebar.left" accessibilityLabel={collapsed ? t('Show sidebar') : t('Hide sidebar')} onPress={toggleSidebar} />
+          <Stack.Toolbar.Button icon="square.and.pencil" accessibilityLabel={t('New task')} onPress={openNewThread} />
         </Stack.Toolbar>
       )}
       <Stack.Toolbar placement="right">
-        <Stack.Toolbar.Button icon="slider.horizontal.3" accessibilityLabel="Model and permissions" onPress={settings} />
-        <Stack.Toolbar.Button icon="info.circle" accessibilityLabel="Task info" onPress={info} />
-        <Stack.Toolbar.Button icon="stop.circle.fill" accessibilityLabel="Stop" tintColor={colors.red} hidden={!running} onPress={stop} />
+        <Stack.Toolbar.Button icon="slider.horizontal.3" accessibilityLabel={t('Model and permissions')} onPress={settings} />
+        <Stack.Toolbar.Button icon="info.circle" accessibilityLabel={t('Task info')} onPress={info} />
+        <Stack.Toolbar.Button icon="stop.circle.fill" accessibilityLabel={t('Stop')} tintColor={colors.red} hidden={!running} onPress={stop} />
       </Stack.Toolbar>
     </>
   );
