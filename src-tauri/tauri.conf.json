@@ -46,6 +46,12 @@
     ],
     "category": "DeveloperTool",
     "shortDescription": "Lightweight coding agent workspace",
+    "resources": {
+      "lproj/zh-Hans.lproj/Localizable.strings": "zh-Hans.lproj/Localizable.strings",
+      "lproj/zh-Hant-TW.lproj/Localizable.strings": "zh-Hant-TW.lproj/Localizable.strings",
+      "lproj/zh-Hant-HK.lproj/Localizable.strings": "zh-Hant-HK.lproj/Localizable.strings",
+      "lproj/en-GB.lproj/Localizable.strings": "en-GB.lproj/Localizable.strings"
+    },
     "macOS": {
       "minimumSystemVersion": "12.0",
       "dmg": {
