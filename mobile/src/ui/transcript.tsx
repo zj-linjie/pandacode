@@ -2,7 +2,7 @@
 // each; the live run is its own component reading useLive, so streamed deltas re-render only it.
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import { memo, useCallback, useEffect, useMemo, useState, type Ref } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { markPaint } from '../connect/perf.ts';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import type { Message } from '../connect/types.ts';
@@ -271,21 +271,34 @@ const key = (row: TurnRow) => row.id;
 const ANCHOR = { minIndexForVisible: 0, autoscrollToTopThreshold: AWAY };
 const render = ({ item }: { item: TurnRow }) => <Row row={item} />;
 
-/** Inverted list: newest at the bottom, the live run and unsent messages below the last stored message.
+/** Chronological chat list: oldest at the top, the live run and unsent messages after the newest.
+ * RN's `inverted` lists don't paint at rest on iOS 26 (Fabric lays the content out but shows
+ * nothing until the next transition), so the rows render in order and the list anchors itself
+ * with maintainVisibleContentPosition instead: reading above the newest stays put, near the
+ * newest it follows new messages, and older pages prepended above don't shift what is read.
  * `onAway` hears only when the list crosses AWAY from the newest message. */
 export const Transcript = memo(function Transcript({ deviceId, sessionId, top, bottom, listRef, onAway }: {
-  deviceId: string; sessionId: string; top: number; bottom: number; listRef?: Ref<FlatList<TurnRow>>; onAway?: (away: boolean) => void;
+  deviceId: string; sessionId: string; top: number; bottom: number; listRef?: RefObject<FlatList<TurnRow> | null>; onAway?: (away: boolean) => void;
 }) {
   const messages = useMessages(deviceId, sessionId);
-  const data = useMemo(() => turnRows(messages).reverse(), [messages]);
+  const data = useMemo(() => turnRows(messages), [messages]);
   useEffect(() => { if (data.length) markPaint(taskKey(deviceId, sessionId), data.length); }, [data.length, deviceId, sessionId]);
-  // Inverted: the end is the top, so this asks for older history as the user nears it.
-  const onEndReached = useCallback(() => void connect.loadOlder(deviceId, sessionId), [deviceId, sessionId]);
+  // The transcript opens at the newest message: the list starts at the top (oldest), so the
+  // first full layout jumps to the end. Later additions are mVCP's job (ANCHOR above).
+  const opened = useRef(false);
+  const onContentSizeChanged = useCallback((_: number, height: number) => {
+    if (opened.current || !height) return;
+    opened.current = true;
+    listRef?.current?.scrollToEnd({ animated: false });
+  }, [listRef]);
+  // Older history sits above the oldest message, so load more as the user nears the start.
+  const onStartReached = useCallback(() => void connect.loadOlder(deviceId, sessionId), [deviceId, sessionId]);
   const onScroll = useMemo(() => {
     if (!onAway) return undefined;
     let away = false;
     return (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const next = e.nativeEvent.contentOffset.y > AWAY;
+      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+      const next = contentOffset.y < contentSize.height - layoutMeasurement.height - AWAY;
       if (next !== away) onAway((away = next));
     };
   }, [onAway]);
@@ -295,18 +308,16 @@ export const Transcript = memo(function Transcript({ deviceId, sessionId, top, b
     <ImageViewerHost />
     <FlatList
       ref={listRef}
-      inverted
       data={data}
       keyExtractor={key}
       renderItem={render}
-      ListHeaderComponent={<><History deviceId={deviceId} sessionId={sessionId} empty={!messages.length} /><SentBubbles deviceId={deviceId} sessionId={sessionId} before /><LiveRun deviceId={deviceId} sessionId={sessionId} /><SentBubbles deviceId={deviceId} sessionId={sessionId} before={false} /><Pending deviceId={deviceId} sessionId={sessionId} /></>}
-      ListFooterComponent={<Older deviceId={deviceId} sessionId={sessionId} />}
-      onEndReached={onEndReached}
-      onEndReachedThreshold={1}
-      // New messages arriving while the user reads further up don't move what they read; near the
-      // newest message the list follows it.
+      ListHeaderComponent={<Older deviceId={deviceId} sessionId={sessionId} />}
+      ListFooterComponent={<><History deviceId={deviceId} sessionId={sessionId} empty={!messages.length} /><SentBubbles deviceId={deviceId} sessionId={sessionId} before /><LiveRun deviceId={deviceId} sessionId={sessionId} /><SentBubbles deviceId={deviceId} sessionId={sessionId} before={false} /><Pending deviceId={deviceId} sessionId={sessionId} /></>}
+      onStartReached={onStartReached}
+      onStartReachedThreshold={1}
       maintainVisibleContentPosition={ANCHOR}
-      contentContainerStyle={[styles.list, { paddingTop: bottom, paddingBottom: top }]}
+      onContentSizeChange={onContentSizeChanged}
+      contentContainerStyle={[styles.list, { paddingTop: top, paddingBottom: bottom }]}
       keyboardDismissMode="interactive"
       keyboardShouldPersistTaps="handled"
       onScroll={onScroll}
@@ -314,7 +325,6 @@ export const Transcript = memo(function Transcript({ deviceId, sessionId, top, b
       initialNumToRender={10}
       maxToRenderPerBatch={8}
       windowSize={9}
-      removeClippedSubviews
     />
     </ThreadContext.Provider>
   );

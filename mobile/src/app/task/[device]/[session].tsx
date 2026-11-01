@@ -3,7 +3,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { memo, useEffect, useRef, useState } from 'react';
-import { FlatList, Keyboard, LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, FlatList, Keyboard, LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect } from '../../../connect/client.ts';
 import { markOpen } from '../../../connect/perf.ts';
@@ -35,9 +35,23 @@ function useKeyboardHeight(): number {
       if (ios && duration) LayoutAnimation.configureNext({ duration, update: { type: 'keyboard' } });
       setHeight(next);
     };
+    // iOS drops keyboardDidHide for interactive dismissals (the transcript's keyboardDismissMode),
+    // which left the height stuck and pushed the transcript out of view: reconcile with willHide
+    // and the real frame (a keyboard whose bottom edge sits at the window's bottom is hidden).
+    if (!ios) {
+      const subs = [
+        Keyboard.addListener('keyboardDidShow', e => move(e.endCoordinates.height, e.duration)),
+        Keyboard.addListener('keyboardDidHide', () => move(0)),
+      ];
+      return () => subs.forEach(sub => sub.remove());
+    }
     const subs = [
-      Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', e => move(e.endCoordinates.height, e.duration)),
-      Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', e => move(0, e.duration)),
+      Keyboard.addListener('keyboardWillShow', e => move(e.endCoordinates.height, e.duration)),
+      Keyboard.addListener('keyboardWillHide', e => move(0, e.duration)),
+      Keyboard.addListener('keyboardDidChangeFrame', e => {
+        const visible = e.endCoordinates.height > 0 && e.endCoordinates.screenY < Dimensions.get('window').height - 1;
+        move(visible ? e.endCoordinates.height : 0, e.duration);
+      }),
     ];
     return () => subs.forEach(sub => sub.remove());
   }, []);
@@ -108,7 +122,7 @@ export default function TaskScreen() {
   const keyboard = useKeyboardHeight();
   const list = useRef<FlatList<TurnRow>>(null);
   const [away, setAway] = useState(false);
-  const [latest] = useState(() => () => list.current?.scrollToOffset({ offset: 0, animated: true }));
+  const [latest] = useState(() => () => list.current?.scrollToEnd({ animated: true }));
 
   useEffect(() => {
     markOpen(taskKey(device, session));
